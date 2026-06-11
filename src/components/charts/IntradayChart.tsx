@@ -74,7 +74,7 @@ export function IntradayChart({ data }: { data: PlantSeries["intraday"] }) {
 
 function Empty({ msg }: { msg: string }) {
   return (
-    <div className="flex h-[320px] items-center justify-center rounded-xl bg-neutral-900/40 text-sm text-neutral-500">
+    <div className="flex h-[320px] items-center justify-center rounded-xl bg-[var(--surface-2)] text-sm text-[var(--text-faint)]">
       {msg}
     </div>
   );

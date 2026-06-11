@@ -8,7 +8,7 @@ type Point = { t: string; pv: number; load: number; soc: number | null; gen: num
 /** Serie intradía de un dispositivo. Para inversor (pv+load) o batería (soc). */
 export function DeviceIntradayChart({ data, mode }: { data: Point[]; mode: "power" | "soc" }) {
   if (!data.length) {
-    return <div className="flex h-64 items-center justify-center text-sm text-neutral-500">Sin datos de hoy.</div>;
+    return <div className="flex h-64 items-center justify-center text-sm text-[var(--text-faint)]">Sin datos de hoy.</div>;
   }
   const axisLine = { lineStyle: { color: "rgba(128,128,128,0.3)" } };
   const splitLine = { lineStyle: { color: "rgba(128,128,128,0.15)" } };

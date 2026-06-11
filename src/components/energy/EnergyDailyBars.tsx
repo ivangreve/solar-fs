@@ -8,7 +8,7 @@ type Row = { day: string; ePv: number; eLoad: number };
 /** Generación FV (barras) vs consumo (línea) por día. */
 export function EnergyDailyBars({ data }: { data: Row[] }) {
   if (!data.length) {
-    return <div className="flex h-72 items-center justify-center text-sm text-neutral-500">Sin histórico todavía.</div>;
+    return <div className="flex h-72 items-center justify-center text-sm text-[var(--text-faint)]">Sin histórico todavía.</div>;
   }
   const option = {
     backgroundColor: "transparent",

@@ -48,15 +48,15 @@ export default async function BateriaPage({ params }: { params: Promise<{ id: st
             <div className="flex items-center gap-4">
               <SocArc soc={b.socPct} />
               <div className="min-w-0">
-                <div className="text-sm text-neutral-200">Batería {i + 1}</div>
-                <div className="font-mono text-[11px] text-neutral-600">{b.model ?? b.deviceSn}</div>
+                <div className="text-sm text-[var(--text)]">Batería {i + 1}</div>
+                <div className="font-mono text-[11px] text-[var(--text-faint)]">{b.model ?? b.deviceSn}</div>
                 <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                  <dt className="text-neutral-500">Salud (SOH)</dt>
+                  <dt className="text-[var(--text-faint)]">Salud (SOH)</dt>
                   <dd className="tabular-nums text-emerald-400">{b.sohPct != null ? `${b.sohPct} %` : "—"}</dd>
-                  <dt className="text-neutral-500">Voltaje</dt>
-                  <dd className="tabular-nums text-neutral-200">{b.battVolt != null ? `${b.battVolt.toFixed(1)} V` : "—"}</dd>
-                  <dt className="text-neutral-500">Último dato</dt>
-                  <dd className="text-neutral-400">{ago(b.lastTs)}</dd>
+                  <dt className="text-[var(--text-faint)]">Voltaje</dt>
+                  <dd className="tabular-nums text-[var(--text)]">{b.battVolt != null ? `${b.battVolt.toFixed(1)} V` : "—"}</dd>
+                  <dt className="text-[var(--text-faint)]">Último dato</dt>
+                  <dd className="text-[var(--text-muted)]">{ago(b.lastTs)}</dd>
                 </dl>
               </div>
             </div>
@@ -70,7 +70,7 @@ export default async function BateriaPage({ params }: { params: Promise<{ id: st
 
       <SectionCard title="Carga y descarga · últimos 30 días">
         <ChargeDischargeBars data={daily} />
-        <p className="mt-3 text-xs text-neutral-500">
+        <p className="mt-3 text-xs text-[var(--text-faint)]">
           El detalle por celda y el conteo de ciclos no están disponibles en este modelo de batería.
         </p>
       </SectionCard>

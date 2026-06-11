@@ -112,7 +112,7 @@ export function SourceMixChart({ data }: { data: PlantSeries["intraday"] }) {
 
 function Empty({ msg }: { msg: string }) {
   return (
-    <div className="flex h-[340px] items-center justify-center rounded-xl border border-dashed border-white/10 px-8 text-center text-sm text-neutral-500">
+    <div className="flex h-[340px] items-center justify-center rounded-xl border border-dashed border-white/10 px-8 text-center text-sm text-[var(--text-faint)]">
       {msg}
     </div>
   );

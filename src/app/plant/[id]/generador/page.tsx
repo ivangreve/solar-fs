@@ -27,11 +27,11 @@ export default async function GeneradorPage({ params }: { params: Promise<{ id: 
       {!gen.everUsed && (
         <SectionCard>
           <div className="flex flex-col items-start gap-2">
-            <div className="text-xs uppercase tracking-wide text-neutral-500">Combustible</div>
-            <div className="text-3xl font-semibold text-neutral-100">
+            <div className="text-xs uppercase tracking-wide text-[var(--text-faint)]">Combustible</div>
+            <div className="text-3xl font-semibold text-[var(--text)]">
               No usaste el generador
             </div>
-            <p className="max-w-prose text-sm text-neutral-400">
+            <p className="max-w-prose text-sm text-[var(--text-muted)]">
               0 kWh generados, 0 litros de nafta, $0 en combustible. Toda tu energía vino del sol y
               la batería. El día que arranques el generador, esta sección registra cuánto aportó y
               cuánto te costó.

@@ -38,7 +38,7 @@ export default async function EnergiaPage({ params }: { params: Promise<{ id: st
       {lastDay && (
         <SectionCard title={`Flujo de energía · ${lastDay.day}`}>
           <EnergySankey day={lastDay} />
-          <p className="mt-3 text-xs text-neutral-500">
+          <p className="mt-3 text-xs text-[var(--text-faint)]">
             Flujos reconstruidos a partir de los totales del día. El sol que no se consume al
             instante carga la batería; de noche el consumo sale de la batería.
           </p>

@@ -9,7 +9,7 @@ export type BatterySeries = { label: string; points: Array<{ t: string; soc: num
 export function BatterySocChart({ series }: { series: BatterySeries[] }) {
   const withData = series.filter((s) => s.points.some((p) => p.soc != null));
   if (!withData.length) {
-    return <div className="flex h-64 items-center justify-center text-sm text-neutral-500">Sin datos de SOC de hoy.</div>;
+    return <div className="flex h-64 items-center justify-center text-sm text-[var(--text-faint)]">Sin datos de SOC de hoy.</div>;
   }
   // eje x: usar la serie más larga
   const axis = withData.reduce((a, b) => (b.points.length > a.points.length ? b : a)).points.map((p) => p.t);

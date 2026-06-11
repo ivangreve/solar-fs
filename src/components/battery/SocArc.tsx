@@ -26,10 +26,10 @@ export function SocArc({ soc, size = 96 }: { soc: number | null; size?: number }
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-xl font-semibold tabular-nums text-neutral-100">
+        <span className="text-xl font-semibold tabular-nums text-[var(--text)]">
           {soc != null ? Math.round(soc) : "—"}
         </span>
-        <span className="text-[10px] text-neutral-500">SOC %</span>
+        <span className="text-[10px] text-[var(--text-faint)]">SOC %</span>
       </div>
     </div>
   );

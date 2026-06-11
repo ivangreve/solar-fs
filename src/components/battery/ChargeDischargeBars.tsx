@@ -8,7 +8,7 @@ type Row = { day: string; eBatChar: number; eBatDischar: number };
 /** Carga vs descarga de la batería por día. */
 export function ChargeDischargeBars({ data }: { data: Row[] }) {
   if (!data.length) {
-    return <div className="flex h-64 items-center justify-center text-sm text-neutral-500">Sin histórico todavía.</div>;
+    return <div className="flex h-64 items-center justify-center text-sm text-[var(--text-faint)]">Sin histórico todavía.</div>;
   }
   const option = {
     backgroundColor: "transparent",

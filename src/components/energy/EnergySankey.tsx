@@ -39,7 +39,7 @@ export function EnergySankey({ day }: { day: DayEnergy }) {
   ].filter((l) => l.value > 0.001);
 
   if (!raw.length) {
-    return <div className="flex h-72 items-center justify-center text-sm text-neutral-500">Sin energía registrada para este día.</div>;
+    return <div className="flex h-72 items-center justify-center text-sm text-[var(--text-faint)]">Sin energía registrada para este día.</div>;
   }
 
   const usedNodes = new Set<string>();
