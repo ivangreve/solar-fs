@@ -101,6 +101,34 @@ export async function ingestSnapshots(
   return count;
 }
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Pide una página de histórico con pacing y reintentos. Felicity rate-limitea con
+ * code 996 ("Do not refresh frequently") si se le pega sin pausa → backoff creciente.
+ */
+async function historyPage(
+  api: FelicityClient,
+  dev: Device,
+  dateStr: string,
+  page: number,
+): ReturnType<FelicityClient["history"]> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await api.history(dev.deviceSn, dateStr, page, 300, dev.deviceType);
+    } catch (err) {
+      const code = (err as { code?: number }).code;
+      if (code === 996 && attempt < 5) {
+        const waitS = 30 * (attempt + 1);
+        console.log(`  ⏳ rate limit de Felicity (996) — espero ${waitS}s y reintento...`);
+        await sleep(waitS * 1000);
+        continue;
+      }
+      throw err;
+    }
+  }
+}
+
 /** Backfill: trae TODO el histórico crudo (5-min) de un dispositivo, día por día. */
 export async function backfillDevice(
   ds: DataSource,
@@ -116,7 +144,8 @@ export async function backfillDevice(
     let page = 1;
     let totalPage = 1;
     do {
-      const res = await api.history(dev.deviceSn, dateStr, page, 300, dev.deviceType);
+      await sleep(500); // pacing: no castigar la API (evita el 996)
+      const res = await historyPage(api, dev, dateStr, page);
       const rows = res.dataList ?? res.data ?? [];
       totalPage = res.totalPage ?? 1;
       // Dedup por ts: el histórico puede repetir marcas de tiempo, y un upsert no

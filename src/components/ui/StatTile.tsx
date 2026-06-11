@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { ACCENT_TEXT, fmtKwh, fmtW, fmtPct, type EnergyAccent } from "./tokens";
+import { ACCENT_TEXT, ENERGY_COLORS, fmtKwh, fmtW, fmtPct, type EnergyAccent } from "./tokens";
 import { AnimatedNumber } from "./AnimatedNumber";
 
 /** Tipo de formato para el count-up (no se pueden pasar funciones server→client). */
@@ -42,14 +42,20 @@ export function StatTile({ label, value, unit, sub, accent = "solar", to, kind, 
       whileHover={{ y: -2 }}
       className="rounded-2xl p-5 ring-1 bg-[var(--surface)] ring-[var(--border)] transition-colors duration-200 hover:ring-[var(--border-strong)]"
     >
-      <div className="text-xs uppercase tracking-wide text-[var(--text-muted)]">{label}</div>
+      <div className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-[var(--text-muted)]">
+        <span
+          className="h-1.5 w-1.5 shrink-0 rounded-full opacity-80"
+          style={{ backgroundColor: ENERGY_COLORS[accent] }}
+        />
+        {label}
+      </div>
       <div className="mt-2 flex items-baseline gap-1">
         <span className={`text-3xl font-semibold tabular-nums ${ACCENT_TEXT[accent]}`}>
           {to != null && kind ? <AnimatedNumber value={to} format={formatterFor(kind)} /> : value}
         </span>
         {unit && <span className="text-sm text-[var(--text-muted)]">{unit}</span>}
       </div>
-      {sub && <div className="mt-1 text-xs text-[var(--text-faint)]">{sub}</div>}
+      {sub && <div className="mt-1 truncate text-xs text-[var(--text-faint)]">{sub}</div>}
     </motion.div>
   );
 }

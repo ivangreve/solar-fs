@@ -12,7 +12,7 @@ export function SectionCard({
     <section
       className={`rounded-2xl p-5 ring-1 bg-[var(--surface)] ring-[var(--border)] ${className}`}
     >
-      {title && <h2 className="mb-3 text-sm font-medium text-[var(--text)]">{title}</h2>}
+      {title && <h2 className="mb-4 text-sm font-semibold text-[var(--text)]">{title}</h2>}
       {children}
     </section>
   );
