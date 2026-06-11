@@ -1,89 +1,124 @@
-# solar-fs — Monitoreo solar (Felicity) · Fase 0
+# ☀️ solar-fs — Dashboard solar off-grid (Felicity)
 
-Web app de estadísticas para sistemas solares Felicity, con **DB propia de series de
-tiempo** (no depende de leer la API en vivo en cada request).
+Dashboard de monitoreo para sistemas solares **Felicity Solar**, pensado para
+instalaciones **off-grid** (sin red): paneles + inversor + banco de baterías + generador
+a nafta de respaldo. Multi-usuario: cada persona conecta su cuenta Felicity y ve solo
+sus plantas.
 
-- **Plan de producto y gráficos:** [`docs/PLAN_PRODUCTO.md`](docs/PLAN_PRODUCTO.md)
-- **Doc de la API de Felicity:** [`docs/API_FELICITYSOLAR.md`](docs/API_FELICITYSOLAR.md)
+**Demo en producción:** https://solar-fs.vercel.app
+
+A diferencia de la app oficial, `solar-fs` mantiene una **base de datos propia de series
+de tiempo** (telemetría 5-min + rollups diarios), lo que permite KPIs e históricos que la
+nube de Felicity no ofrece: autosuficiencia real, energía aportada por el generador,
+balance de carga/descarga de baterías y costo estimado de nafta.
+
+## Features
+
+- 🔐 **Login con tu cuenta Felicity** — la identidad la valida la API de Felicity.
+  Multi-usuario con aislamiento por dueño (cada uno ve SUS plantas).
+- 📊 **Resumen** — KPIs animados del día (generación, autosuficiencia, autoconsumo),
+  potencia en vivo y curvas intradía (FV / generador / consumo / SOC).
+- 🔌 **Dispositivos** — esquema del sistema con ilustraciones del hardware real
+  (inversor IVEM, baterías FLA48100 con anillo de SOC) y flujo de energía animado.
+- ⚡ **Energía** — mix de fuentes, diagrama Sankey del día (con kWh por nodo) y
+  comparativa generación/consumo de 30 días.
+- 🔋 **Batería** — SOC del banco, salud (SOH), voltaje y ciclos de carga/descarga
+  estimados por balance de energía.
+- ⛽ **Generador** — energía aportada por nafta, litros y costo estimados, % del
+  consumo cubierto.
+- 🌗 Tema claro/oscuro (cookie server-side, sin flash) · 🕐 horas en zona local del
+  equipo (`APP_TZ`) · animaciones con `motion`.
 
 ## Stack
-Next.js 16 (App Router) · TypeScript · Tailwind · **TypeORM** · PostgreSQL (Docker) ·
-ingesta con `tsx`.
 
-## Arquitectura (Fase 0)
+Next.js 16 (App Router, Server Actions, `proxy.ts`) · React 19 · TypeScript · Tailwind ·
+ECharts · TypeORM · PostgreSQL · Docker (dev) · Vercel + Neon (prod).
+
+## Arquitectura
+
 ```
-Felicity API ──(server-side, BFF)──► capa anti-corrupción ──► Postgres (TypeORM)
-                                       (login RSA, token,         │
-                                        normalización)            ▼
-   cron 5min ─► /api/cron/ingest ─► ingesta + rollup        Next route handlers ─► UI
+                                  ┌────────────────────────────────────────────┐
+Felicity API ◄──(cliente por usuario: login RSA + token cacheado)──┐           │
+                                  │                                │           │
+   crons ──► /api/cron/ingest ──► ingesta por usuario ──► Postgres (telemetry, │
+ (cada 5min)   (CRON_SECRET)      + rollup diario          daily_stats, ...)   │
+                                  │                                │           │
+ navegador ──► proxy.ts (cookie) ──► requireUser() ──► queries con ownership ──┘
+               (chequeo optimista)   (sesión en DB)     (fail-closed, anti-IDOR)
 ```
 
-- **`src/server/felicity/`** — cliente de la API (login RSA, token, endpoints) +
-  normalización (mapea esquemas live/histórico a un modelo canónico).
-- **`src/server/db/`** — DataSource + entities (`Plant`, `Device`, `Telemetry`,
-  `DailyStat`, `HealthSnapshot`).
-- **`src/server/ingest/`** — sync de metadata, snapshot en vivo, backfill histórico,
-  rollup diario (autosuficiencia, autoconsumo, ahorro).
-- **`src/app/api/`** — BFF: `/api/plants`, `/api/plants/[id]/overview`, `/api/cron/ingest`.
-- **`scripts/`** — entrypoints ejecutables con `tsx`.
+- **`src/server/felicity/`** — cliente API (login RSA, re-login automático) +
+  normalización a un modelo canónico. *Gotcha conocido:* el `dataTime` (epoch) del
+  snapshot viene corrupto; se parsea desde `dataTimeStr` + `timeZone`.
+- **`src/server/auth/`** — sesiones revocables (tabla + cookie httpOnly), encriptación
+  AES-256-GCM de la contraseña Felicity (reversible a propósito: el cron la reusa para
+  re-loguear; por eso NO es un hash) e iterador de ingesta por usuario.
+- **`src/server/db/`** — entities: `User`, `Session`, `Plant` (con `ownerUserId`),
+  `Device`, `Telemetry`, `DailyStat`, `HealthSnapshot`.
+- **`src/server/ingest/`** — sync de metadata, snapshots en vivo, backfill histórico
+  (con pacing + retry ante el rate-limit 996 de Felicity) y rollup diario.
+- **`src/proxy.ts`** — redirección temprana por cookie (Next 16 renombró middleware a
+  proxy). La autorización real vive en `requireUser()` + filtros por dueño en cada query.
 
-## Puesta en marcha
+## Desarrollo local
 
-### 1. Variables de entorno
-Creá un archivo `.env` en la raíz (está en `.gitignore`). Base:
+### 1. Variables de entorno (`.env`)
 
 ```env
 DATABASE_URL=postgres://solarfs:solarfs@localhost:5433/solarfs
-FELICITY_USERNAME=tu-email@ejemplo.com
-FELICITY_PASSWORD=tu-password
-CRON_SECRET=un-string-random-largo
+APP_ENCRYPTION_KEY=   # openssl rand -base64 32 — encripta las contraseñas Felicity
+CRON_SECRET=          # string random largo — protege /api/cron/ingest
+# APP_TZ=America/Argentina/Buenos_Aires   (default)
 ```
 
-> Atajo en la terminal de Claude Code: `! cp .env.example .env` y editá. (También
-> tenés `.env.example` de referencia.)
+> ⚠️ `APP_ENCRYPTION_KEY` no se rota una vez que hay usuarios: desencripta las
+> credenciales guardadas. Sin ella, nadie puede loguearse.
 
-### 2. Levantar Postgres y crear el schema
+### 2. Levantar todo
+
 ```bash
-npm run db:up      # docker compose: Postgres en localhost:5433
-npm run db:sync    # crea las tablas desde las entities (dev)
+npm install
+npm run db:up        # docker compose: Postgres (5433) + nginx (8080) + crons de ingesta
+npm run db:sync      # crea el schema desde las entities
+PORT=3009 npm run dev
 ```
 
-### 3. Cargar datos
-```bash
-npm run sync:meta          # trae plantas y dispositivos de Felicity
-npm run backfill           # histórico completo (5-min) desde la instalación
-# o acotado:  npm run backfill 2026-06-01
-npm run ingest             # snapshot en vivo + rollup del día (esto corre el cron)
-```
+Abrí **http://localhost:8080** (nginx → next dev) y logueate con tu cuenta Felicity.
+El primer login sincroniza tus plantas; el contenedor `ingest` mantiene los datos
+frescos cada 5 min. Para el histórico completo: `npm run backfill`.
 
-### 4. Levantar la app
-```bash
-npm run dev                # http://localhost:3000
-curl http://localhost:3000/api/plants   # probar el BFF
-```
+### Scripts
 
-## Scripts
 | Comando | Qué hace |
 |---------|----------|
-| `npm run db:up` / `db:down` | Postgres en Docker |
-| `npm run db:sync` | Crea/actualiza schema desde entities (dev) |
-| `npm run sync:meta` | Sincroniza plantas y dispositivos |
-| `npm run backfill [YYYY-MM-DD]` | Backfill histórico + rollups |
-| `npm run ingest` | Snapshot en vivo + rollup (cron 5-min) |
-| `npm run dev` | Next.js en dev |
+| `npm run db:up` / `db:down` | Stack de Docker (Postgres, nginx, crons) |
+| `npm run db:sync` | Crea/actualiza el schema desde las entities |
+| `npm run sync:meta` | Re-sincroniza plantas y dispositivos (todos los usuarios) |
+| `npm run backfill [YYYY-MM-DD]` | Histórico 5-min desde la instalación + rollups |
+| `npm run ingest` | Snapshot en vivo + rollup del día (lo que corre el cron) |
+| `npm run reroll` | Recalcula todos los rollups (ej: tras cambiar `APP_TZ`) |
 
-## Producción (cron)
-`vercel.json` define un cron cada 5 min que pega a `/api/cron/ingest` (protegido por
-`CRON_SECRET`). En otro hosting, agendá un cron equivalente al mismo endpoint, o corré
-`npm run ingest` desde un scheduler.
+## Producción
 
-## Estado y próximos pasos
-**Fase 0 verificada end-to-end:** login RSA, normalización live/histórico, ingesta,
-backfill y rollup diario funcionan contra la API real. Generación, autoconsumo, pico FV
-y ciclado de SOC se calculan correctamente.
+Deploy en **Vercel** con **Neon** (Postgres administrada). Guía paso a paso en
+[`DEPLOY.md`](DEPLOY.md). Resumen del cron de ingesta:
 
-**Pendiente Fase 1 (modelo energético):**
-- Mapear bien el **consumo** (`load`): en inversores off-grid la carga ≈ `acOutPower`.
-  Hoy `e_load_kwh` puede dar 0 → la autosuficiencia queda null hasta afinar esto.
-- Reemplazar `db:sync` por **migraciones** de TypeORM para producción.
-- Construir el Overview y los gráficos de la Fase 1 (ver `docs/PLAN_PRODUCTO.md`).
+- `vercel.json` define un cron **diario** (23:50 ART) — el plan Hobby no permite más
+  frecuencia.
+- Para frescura de 5 min: el servicio `ingest-prod` del docker-compose (corre en tu
+  máquina) o un workflow de GitHub Actions pegándole a
+  `/api/cron/ingest` con `Authorization: Bearer $CRON_SECRET`.
+
+## Docs
+
+- [`docs/PLAN_PRODUCTO.md`](docs/PLAN_PRODUCTO.md) — plan de producto y gráficos.
+- [`docs/API_FELICITYSOLAR.md`](docs/API_FELICITYSOLAR.md) — ingeniería inversa de la
+  API de Felicity (endpoints, login RSA, campos útiles).
+- [`DEPLOY.md`](DEPLOY.md) — deploy a Vercel + Neon.
+
+## Roadmap
+
+- [ ] Filtro por fecha/rango transversal a todas las vistas
+- [ ] Onboarding de tarifas + sección **Finanzas** (ahorro real, payback)
+- [ ] Migraciones de TypeORM (hoy: `db:sync`)
+- [ ] Alertas (SOC bajo, equipo offline, generador encendido)
