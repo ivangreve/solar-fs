@@ -58,17 +58,24 @@ function PanelsGlyph({ size = 110 }: { size?: number }) {
   );
 }
 
-/** Conector vertical con energía que "corre" hacia abajo. */
+/** Conector con energía que "corre": vertical en mobile, horizontal en desktop. */
 function Flow({ label, color = "var(--text-faint)" }: { label?: string; color?: string }) {
   return (
-    <div className="flex flex-col items-center justify-center py-1 text-[var(--text-faint)]">
+    <div className="flex flex-col items-center justify-center py-1 text-[var(--text-faint)] md:shrink-0 md:px-1 md:py-0">
       {label && <span className="text-[11px] tabular-nums">{label}</span>}
-      <svg width="12" height="24" viewBox="0 0 12 24" fill="none" aria-hidden>
+      <svg className="md:hidden" width="12" height="24" viewBox="0 0 12 24" fill="none" aria-hidden>
         <line x1="6" y1="0" x2="6" y2="16" stroke="currentColor" strokeOpacity="0.3" strokeWidth="1.4" />
         <line x1="6" y1="0" x2="6" y2="16" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeDasharray="3 7">
           <animate attributeName="stroke-dashoffset" values="10;0" dur="0.9s" repeatCount="indefinite" />
         </line>
         <path d="M2 12l4 4 4-4" stroke={color} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      </svg>
+      <svg className="hidden md:block" width="36" height="12" viewBox="0 0 36 12" fill="none" aria-hidden>
+        <line x1="0" y1="6" x2="28" y2="6" stroke="currentColor" strokeOpacity="0.3" strokeWidth="1.4" />
+        <line x1="0" y1="6" x2="28" y2="6" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeDasharray="3 7">
+          <animate attributeName="stroke-dashoffset" values="10;0" dur="0.9s" repeatCount="indefinite" />
+        </line>
+        <path d="M24 2l4 4-4 4" stroke={color} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
       </svg>
     </div>
   );
@@ -121,10 +128,11 @@ export function SystemTopology({
   const inverter = devices.find((d) => d.role === "inverter");
   const batteries = devices.filter((d) => d.role === "battery");
 
+  // Mobile: columna (paneles → inversor → resto). Desktop: flujo horizontal en una sola vista.
   return (
-    <div className="mx-auto max-w-md">
+    <div className="mx-auto flex max-w-md flex-col items-stretch md:max-w-none md:flex-row md:items-center md:justify-center">
       <NodeShell caption="Paneles solares" value={fmtW(pvNowW)}>
-        <PanelsGlyph size={140} />
+        <PanelsGlyph size={110} />
       </NodeShell>
       <Flow label={fmtW(pvNowW)} color={ENERGY_COLORS.solar} />
 
@@ -134,12 +142,12 @@ export function SystemTopology({
           caption={`Inversor · ${inverter.model ?? ""}`}
           status={inverter.status}
         >
-          <InverterUnit online={inverter.status !== "offline"} size={150} />
+          <InverterUnit online={inverter.status !== "offline"} size={120} />
         </NodeShell>
       )}
       <Flow color={ENERGY_COLORS.battery} />
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 md:shrink-0">
         {batteries.map((b, i) => (
           <NodeShell
             key={b.deviceSn}
@@ -147,19 +155,19 @@ export function SystemTopology({
             caption={`Batería ${i + 1}`}
             status={b.status}
           >
-            <BatteryUnit soc={b.socPct} size={100} />
+            <BatteryUnit soc={b.socPct} size={76} />
           </NodeShell>
         ))}
         <NodeShell caption="Consumo de la casa" value={fmtW(loadNowW)}>
-          <div className="flex h-[110px] items-center justify-center">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke={ENERGY_COLORS.load} strokeWidth="1.4">
+          <div className="flex h-[84px] items-center justify-center">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={ENERGY_COLORS.load} strokeWidth="1.4">
               <path d="M3 11l9-8 9 8M5 10v10h14V10M9 20v-6h6v6" />
             </svg>
           </div>
         </NodeShell>
         <NodeShell caption="Red · aislada">
-          <div className="flex h-[110px] items-center justify-center text-[var(--text-faint)]">
-            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3">
+          <div className="flex h-[84px] items-center justify-center text-[var(--text-faint)]">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3">
               <path d="M4 4l16 16M9 3l6 0M12 3v6M7 9h10l-1.5 11h-7z" strokeOpacity="0.5" />
             </svg>
           </div>

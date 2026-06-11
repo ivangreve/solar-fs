@@ -9,6 +9,8 @@ export interface PlantOverview {
   loadNowW: number;
   socAvg: number | null;
   lastTs: string | null;
+  /** Minutos desde el último dato (calculado acá, no en el render: react-hooks/purity). */
+  staleMin: number | null;
   // Hoy (agregado)
   ePvKwh: number;
   eLoadKwh: number;
@@ -72,12 +74,14 @@ export async function getPlantOverview(
   );
 
   const socs = live.map((r) => r.soc).filter((s): s is number => s != null);
+  const lastTs = live.length ? live.map((r) => r.ts).sort().at(-1)! : null;
   return {
     plant,
     pvNowW: live.reduce((s, r) => s + Number(r.pv), 0),
     loadNowW: live.reduce((s, r) => s + Number(r.load), 0),
     socAvg: socs.length ? Math.round(socs.reduce((a, b) => a + b, 0) / socs.length) : null,
-    lastTs: live.length ? live.map((r) => r.ts).sort().at(-1)! : null,
+    lastTs,
+    staleMin: lastTs ? (Date.now() - new Date(lastTs).getTime()) / 60000 : null,
     ePvKwh: Number(agg.e_pv),
     eLoadKwh: Number(agg.e_load),
     eGridInKwh: Number(agg.e_gin),

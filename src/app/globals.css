@@ -33,3 +33,21 @@ body {
   color: var(--text);
   transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+/* Oculta la scrollbar manteniendo el scroll (tabs horizontales en mobile). */
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* El autofill de Chrome pinta los inputs con fondo claro y rompe el tema.
+   El inset shadow tapa ese fondo con el token de superficie (los inputs usan
+   bg-[var(--surface-2)]) y la transición eterna evita el flash amarillo. */
+input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px var(--surface-2) inset;
+  -webkit-text-fill-color: var(--text);
+  caret-color: var(--text);
+  transition: background-color 9999s ease-in-out 0s;
+}

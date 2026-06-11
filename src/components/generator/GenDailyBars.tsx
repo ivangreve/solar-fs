@@ -2,22 +2,24 @@
 
 import ReactECharts from "echarts-for-react";
 import { ENERGY_COLORS } from "@/components/ui/tokens";
+import { useChartTheme, baseTooltip } from "@/components/charts/chartTheme";
 
 type Row = { day: string; kwh: number };
 
 /** Energía del generador por día (se muestra solo si alguna vez se usó). */
 export function GenDailyBars({ data }: { data: Row[] }) {
+  const t = useChartTheme();
   const option = {
     backgroundColor: "transparent",
     grid: { left: 44, right: 20, top: 20, bottom: 28 },
-    tooltip: { trigger: "axis", backgroundColor: "#171717", borderColor: "#333", textStyle: { color: "#e5e5e5" } },
+    tooltip: { ...baseTooltip(t), trigger: "axis" },
     xAxis: {
       type: "category",
       data: data.map((d) => d.day.slice(5)),
-      axisLabel: { color: "#9ca3af" },
-      axisLine: { lineStyle: { color: "rgba(128,128,128,0.3)" } },
+      axisLabel: { color: t.axisLabel },
+      axisLine: { lineStyle: { color: t.axisLine } },
     },
-    yAxis: { type: "value", name: "kWh", nameTextStyle: { color: "#9ca3af" }, axisLabel: { color: "#9ca3af" }, splitLine: { lineStyle: { color: "rgba(128,128,128,0.15)" } } },
+    yAxis: { type: "value", name: "kWh", nameTextStyle: { color: t.axisName }, axisLabel: { color: t.axisLabel }, splitLine: { lineStyle: { color: t.splitLine } } },
     series: [
       {
         name: "Generador",

@@ -34,7 +34,9 @@ export default async function PlantPage({
     );
   }
   const series = await getPlantSeries(id, user.id, dia, rango);
-  const stale = ov.lastTs ? (Date.now() - new Date(ov.lastTs).getTime()) / 60000 : null;
+  // Frescura (min desde el último dato): viene calculada de la capa de datos
+  // para no llamar Date.now() en el render (react-hooks/purity).
+  const stale = ov.staleMin;
   const peak = series.intraday.reduce((m, d) => Math.max(m, d.pv), 0);
   // Pronóstico: solo viendo "hoy" y con ubicación cargada (best-effort, nunca rompe la página)
   const forecast =

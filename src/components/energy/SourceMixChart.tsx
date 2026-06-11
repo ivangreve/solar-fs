@@ -3,6 +3,8 @@
 import ReactECharts from "echarts-for-react";
 import type { PlantSeries } from "@/server/queries";
 import { ENERGY_COLORS } from "@/components/ui/tokens";
+import { useChartTheme, baseTooltip } from "@/components/charts/chartTheme";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 /**
  * "De dónde salió cada watt" — descomposición instantánea del consumo por fuente.
@@ -22,8 +24,15 @@ import { ENERGY_COLORS } from "@/components/ui/tokens";
  * un área tenue por encima para no perder de vista cuánto sol sobró.
  */
 export function SourceMixChart({ data }: { data: PlantSeries["intraday"] }) {
+  const th = useChartTheme();
   if (!data.length) {
-    return <Empty msg="Todavía no entró telemetría de hoy. Aparece en cuanto corra el próximo ciclo." />;
+    return (
+      <EmptyState
+        height={340}
+        title="Todavía no hay datos de hoy"
+        subtitle="El detalle del consumo aparece en cuanto tu equipo reporta."
+      />
+    );
   }
 
   const t = data.map((d) => d.t);
@@ -36,14 +45,12 @@ export function SourceMixChart({ data }: { data: PlantSeries["intraday"] }) {
     backgroundColor: "transparent",
     grid: { left: 52, right: 24, top: 36, bottom: 28 },
     tooltip: {
+      ...baseTooltip(th),
       trigger: "axis",
-      backgroundColor: "#171717",
-      borderColor: "rgba(128,128,128,0.3)",
-      textStyle: { color: "#e5e5e5" },
       valueFormatter: (v: number) => (v == null ? "—" : `${Math.round(v)} W`),
     },
     legend: {
-      textStyle: { color: "#a3a3a3" },
+      textStyle: { color: th.legendText },
       top: 4,
       itemWidth: 10,
       itemHeight: 10,
@@ -53,16 +60,16 @@ export function SourceMixChart({ data }: { data: PlantSeries["intraday"] }) {
       type: "category",
       data: t,
       boundaryGap: false,
-      axisLabel: { color: "#9ca3af", interval: Math.ceil(t.length / 8) },
-      axisLine: { lineStyle: { color: "rgba(128,128,128,0.3)" } },
+      axisLabel: { color: th.axisLabel, interval: Math.ceil(t.length / 8) },
+      axisLine: { lineStyle: { color: th.axisLine } },
       axisTick: { show: false },
     },
     yAxis: {
       type: "value",
       name: "W",
-      nameTextStyle: { color: "#9ca3af", align: "right" },
-      axisLabel: { color: "#9ca3af" },
-      splitLine: { lineStyle: { color: "rgba(128,128,128,0.15)" } },
+      nameTextStyle: { color: th.axisName, align: "right" },
+      axisLabel: { color: th.axisLabel },
+      splitLine: { lineStyle: { color: th.splitLine } },
     },
     series: [
       {
@@ -108,12 +115,4 @@ export function SourceMixChart({ data }: { data: PlantSeries["intraday"] }) {
   };
 
   return <ReactECharts option={option} style={{ height: 340 }} notMerge />;
-}
-
-function Empty({ msg }: { msg: string }) {
-  return (
-    <div className="flex h-[340px] items-center justify-center rounded-xl border border-dashed border-white/10 px-8 text-center text-sm text-[var(--text-faint)]">
-      {msg}
-    </div>
-  );
 }

@@ -35,19 +35,6 @@ function pickPos(r: Raw, ...keys: string[]): number | null {
 }
 
 /**
- * Potencia de carga/descarga de batería a partir del campo con signo.
- * emsPower (inversor) o bmsPower (batería): positivo = descarga, negativo = carga.
- * Si no hay campo con signo, cae a los batteryCharging/Discharge (que suelen ser 0).
- */
-function signedBattCharge(r: Raw, want: "charge" | "discharge"): number | null {
-  const signed = pick(r, "emsPower", "bmsPower");
-  if (signed !== null) return want === "charge" ? Math.max(0, -signed) : Math.max(0, signed);
-  return want === "charge"
-    ? pick(r, "batteryCharging", "bmsPowerCharging")
-    : pick(r, "batteryDischarge", "bmsPowerDischarge");
-}
-
-/**
  * Normaliza un snapshot/fila de Felicity a nuestro modelo canónico.
  *
  * GOTCHA documentado: los nombres difieren entre la respuesta en vivo

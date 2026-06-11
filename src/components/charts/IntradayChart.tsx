@@ -3,6 +3,8 @@
 import ReactECharts from "echarts-for-react";
 import type { PlantSeries } from "@/server/queries";
 import { ENERGY_COLORS } from "@/components/ui/tokens";
+import { useChartTheme, baseTooltip } from "@/components/charts/chartTheme";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 /** Relleno de área con gradiente vertical (color sólido arriba → transparente abajo). */
 const area = (hex: string) => ({
@@ -16,8 +18,15 @@ const area = (hex: string) => ({
 
 /** "De dónde salió cada watt" — FV, generador, consumo y SOC a lo largo del día (5-min). */
 export function IntradayChart({ data }: { data: PlantSeries["intraday"] }) {
+  const t = useChartTheme();
   if (!data.length) {
-    return <Empty msg="Sin datos intradía todavía. Corré la ingesta o esperá al próximo ciclo." />;
+    return (
+      <EmptyState
+        height={320}
+        title="Todavía no hay datos de hoy"
+        subtitle="Los datos llegan cada 5 minutos en cuanto tu equipo reporta."
+      />
+    );
   }
   const hasGen = data.some((d) => d.gen > 0);
 
@@ -49,33 +58,24 @@ export function IntradayChart({ data }: { data: PlantSeries["intraday"] }) {
     backgroundColor: "transparent",
     grid: { left: 14, right: 14, top: 36, bottom: 8, containLabel: true },
     tooltip: {
+      ...baseTooltip(t),
       trigger: "axis",
-      axisPointer: { type: "line", lineStyle: { color: "rgba(128,128,128,0.4)" } },
-      backgroundColor: "rgba(20,20,22,0.92)", borderWidth: 0,
-      textStyle: { color: "#e5e5e5", fontSize: 12 },
+      axisPointer: { type: "line", lineStyle: { color: t.crosshair } },
     },
-    legend: { textStyle: { color: "#a3a3a3" }, top: 2, icon: "roundRect", itemWidth: 12, itemHeight: 6 },
+    legend: { textStyle: { color: t.legendText }, top: 2, icon: "roundRect", itemWidth: 12, itemHeight: 6 },
     xAxis: {
       type: "category", boundaryGap: false, data: data.map((d) => d.t),
-      axisLabel: { color: "#9ca3af", fontSize: 11 },
-      axisLine: { lineStyle: { color: "rgba(128,128,128,0.25)" } },
+      axisLabel: { color: t.axisLabel, fontSize: 11 },
+      axisLine: { lineStyle: { color: t.axisLine } },
       axisTick: { show: false },
     },
     yAxis: [
-      { type: "value", name: "W", nameTextStyle: { color: "#6b7280" }, axisLabel: { color: "#9ca3af", fontSize: 11 },
-        splitLine: { lineStyle: { color: "rgba(128,128,128,0.12)" } } },
-      { type: "value", name: "SOC %", min: 0, max: 100, nameTextStyle: { color: "#6b7280" },
-        axisLabel: { color: "#9ca3af", fontSize: 11 }, splitLine: { show: false } },
+      { type: "value", name: "W", nameTextStyle: { color: t.axisName }, axisLabel: { color: t.axisLabel, fontSize: 11 },
+        splitLine: { lineStyle: { color: t.splitLine } } },
+      { type: "value", name: "SOC %", min: 0, max: 100, nameTextStyle: { color: t.axisName },
+        axisLabel: { color: t.axisLabel, fontSize: 11 }, splitLine: { show: false } },
     ],
     series,
   };
   return <ReactECharts option={option} style={{ height: 320 }} notMerge />;
-}
-
-function Empty({ msg }: { msg: string }) {
-  return (
-    <div className="flex h-[320px] items-center justify-center rounded-xl bg-[var(--surface-2)] text-sm text-[var(--text-faint)]">
-      {msg}
-    </div>
-  );
 }

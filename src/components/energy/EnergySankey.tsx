@@ -2,6 +2,8 @@
 
 import ReactECharts from "echarts-for-react";
 import { ENERGY_COLORS } from "@/components/ui/tokens";
+import { useChartTheme, baseTooltip } from "@/components/charts/chartTheme";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 export type DayEnergy = {
   ePv: number;
@@ -24,6 +26,7 @@ export type DayEnergy = {
  *   Generador → Consumo = eGen
  */
 export function EnergySankey({ day }: { day: DayEnergy }) {
+  const t = useChartTheme();
   const r = (x: number) => Math.round(x * 1000) / 1000;
   const pvToBat = Math.min(day.ePv, day.eBatChar);
   const pvToGrid = day.eGridFeed;
@@ -39,7 +42,13 @@ export function EnergySankey({ day }: { day: DayEnergy }) {
   ].filter((l) => l.value > 0.001);
 
   if (!raw.length) {
-    return <div className="flex h-72 items-center justify-center text-sm text-[var(--text-faint)]">Sin energía registrada para este día.</div>;
+    return (
+      <EmptyState
+        height={320}
+        title="Sin energía registrada este día"
+        subtitle="Probá con otra fecha o volvé más tarde."
+      />
+    );
   }
 
   const usedNodes = new Set<string>();
@@ -75,10 +84,8 @@ export function EnergySankey({ day }: { day: DayEnergy }) {
   const option = {
     backgroundColor: "transparent",
     tooltip: {
+      ...baseTooltip(t),
       trigger: "item",
-      backgroundColor: "rgba(20,20,22,0.92)",
-      borderWidth: 0,
-      textStyle: { color: "#e5e5e5" },
       formatter: (p: { name?: string; value?: number; data?: { source?: string; target?: string } }) =>
         p.data?.source
           ? `${p.data.source} → ${p.data.target}<br/><b>${r(p.value ?? 0)} kWh</b>`
@@ -94,15 +101,15 @@ export function EnergySankey({ day }: { day: DayEnergy }) {
         nodeWidth: 16,
         nodeGap: 16,
         draggable: false,
-        // #6b7280 se lee bien en tema claro y oscuro. Nombre en negrita + kWh debajo.
+        // Nombre en negrita + kWh debajo, con tokens según tema.
         label: {
-          color: "#6b7280",
+          color: t.axisName,
           fontSize: 12,
           formatter: (p: { name?: string; value?: number }) =>
             `{name|${p.name}}\n{val|${r(p.value ?? 0)} kWh}`,
           rich: {
-            name: { fontWeight: 700, fontSize: 12, color: "#6b7280", lineHeight: 16 },
-            val: { fontSize: 11, color: "#9ca3af", lineHeight: 14 },
+            name: { fontWeight: 700, fontSize: 12, color: t.axisName, lineHeight: 16 },
+            val: { fontSize: 11, color: t.axisLabel, lineHeight: 14 },
           },
         },
         lineStyle: { color: "gradient", opacity: 0.5, curveness: 0.5 },

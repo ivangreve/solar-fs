@@ -4,6 +4,25 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 const RANGOS = [7, 30, 90];
 
+/** Chevron SVG (izq/der) para los botones de navegación de día. */
+function Chevron({ dir }: { dir: "left" | "right" }) {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d={dir === "left" ? "M15 18l-6-6 6-6" : "M9 18l6-6-6-6"} />
+    </svg>
+  );
+}
+
 /** Suma días a un "YYYY-MM-DD" (aritmética UTC, sin arrastre de TZ). */
 function shiftDay(day: string, delta: number): string {
   const d = new Date(`${day}T00:00:00Z`);
@@ -39,13 +58,13 @@ export function DateFilter({ today }: { today: string }) {
 
   const esHoy = dia === today;
   const btn =
-    "rounded-lg px-2 py-1 text-xs ring-1 ring-[var(--border)] text-[var(--text-muted)] transition-colors hover:text-[var(--text)] hover:ring-[var(--border-strong)] disabled:opacity-40 disabled:pointer-events-none";
+    "inline-flex min-h-8 items-center justify-center rounded-lg px-2.5 py-1.5 text-xs ring-1 ring-[var(--border)] text-[var(--text-muted)] transition-colors hover:text-[var(--text)] hover:ring-[var(--border-strong)] disabled:opacity-40 disabled:pointer-events-none";
 
   return (
     <div className="mt-4 flex flex-wrap items-center gap-2">
       <div className="flex items-center gap-1">
         <button type="button" className={btn} aria-label="Día anterior" onClick={() => apply(shiftDay(dia, -1), rango)}>
-          ‹
+          <Chevron dir="left" />
         </button>
         <input
           type="date"
@@ -55,7 +74,7 @@ export function DateFilter({ today }: { today: string }) {
           className="rounded-lg bg-[var(--surface-2)] px-2 py-1 text-xs text-[var(--text)] ring-1 ring-[var(--border)] outline-none [color-scheme:inherit]"
         />
         <button type="button" className={btn} aria-label="Día siguiente" disabled={esHoy} onClick={() => apply(shiftDay(dia, 1), rango)}>
-          ›
+          <Chevron dir="right" />
         </button>
         {!esHoy && (
           <button type="button" className={btn} onClick={() => apply(today, rango)}>

@@ -26,14 +26,14 @@ export function PlantTabs({ plantId }: { plantId: string }) {
   ];
 
   return (
-    <nav className="flex flex-wrap gap-1 border-b border-[var(--border)]">
+    <nav className="scrollbar-none flex gap-1 overflow-x-auto border-b border-[var(--border)]">
       {tabs.map((tab) => {
         const active = tab.href === base ? pathname === base : pathname.startsWith(tab.href);
         return (
           <Link
             key={tab.href}
             href={`${tab.href}${qs}`}
-            className={`relative px-3 py-2 text-sm transition-colors ${
+            className={`relative whitespace-nowrap px-3 py-2 text-sm transition-colors ${
               active ? "text-[var(--text)]" : "text-[var(--text-muted)] hover:text-[var(--text)]"
             }`}
           >
