@@ -3,7 +3,7 @@ import { getDevicesWithRole, getPlantOverview } from "@/server/queries";
 import { requireUser } from "@/server/auth/session";
 import { SectionCard } from "@/components/ui/SectionCard";
 import { SystemTopology } from "@/components/devices/SystemTopology";
-import { ENERGY_COLORS } from "@/components/ui/tokens";
+import { ENERGY_COLORS, fmtW } from "@/components/ui/tokens";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -40,38 +40,55 @@ export default async function DispositivosPage({ params }: { params: Promise<{ i
           pvNowW={ov?.pvNowW ?? 0}
           loadNowW={ov?.loadNowW ?? 0}
         />
-        <p className="mt-5 text-center text-xs text-neutral-500">
+        <p className="mt-5 text-center text-xs text-[var(--text-faint)]">
           Tocá un dispositivo para ver su detalle. Los paneles se monitorean como strings del inversor.
         </p>
       </SectionCard>
 
       <SectionCard title="Dispositivos">
-        <div className="divide-y divide-white/5">
+        <div className="divide-y divide-[var(--border)]">
           {devices.map((d) => {
             const clickable = d.role !== "meter";
+            // Métrica en vivo según el rol: SOC en baterías, potencia FV en el inversor.
+            const metric =
+              d.role === "battery" && d.socPct != null
+                ? { value: `${Math.round(d.socPct)} %`, color: ENERGY_COLORS.battery }
+                : d.role === "inverter"
+                  ? { value: fmtW(d.pvNowW), color: ENERGY_COLORS.solar }
+                  : null;
             const row = (
-              <div className="flex items-center justify-between py-3">
-                <div className="min-w-0">
+              <div className="flex items-center gap-3 py-3">
+                <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: STATUS_COLOR[d.status] }} />
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: STATUS_COLOR[d.status] }} />
-                    <span className="truncate text-sm text-neutral-200">{d.model ?? "—"}</span>
-                    <span className="rounded bg-neutral-800 px-1.5 py-0.5 text-[11px] text-neutral-400">
+                    <span className="truncate text-sm font-medium text-[var(--text)]">{d.model ?? "—"}</span>
+                    <span className="rounded bg-[var(--surface-2)] px-1.5 py-0.5 text-[11px] text-[var(--text-muted)] ring-1 ring-[var(--border)]">
                       {ROLE_LABEL[d.role] ?? d.role}
                     </span>
                   </div>
-                  <div className="mt-0.5 truncate font-mono text-[11px] text-neutral-600">{d.deviceSn}</div>
+                  <div className="mt-0.5 truncate font-mono text-[11px] text-[var(--text-faint)]">{d.deviceSn}</div>
                 </div>
-                <div className="shrink-0 text-right">
-                  <div className="text-xs text-neutral-400">{STATUS_LABEL[d.status]}</div>
-                  <div className="text-[11px] text-neutral-600">{ago(d.lastTs)}</div>
+                {metric && (
+                  <div className="shrink-0 text-right text-base font-semibold tabular-nums" style={{ color: metric.color }}>
+                    {metric.value}
+                  </div>
+                )}
+                <div className="w-24 shrink-0 text-right">
+                  <div className="text-xs text-[var(--text-muted)]">{STATUS_LABEL[d.status]}</div>
+                  <div className="text-[11px] text-[var(--text-faint)]">{ago(d.lastTs)}</div>
                 </div>
+                {clickable && (
+                  <svg className="shrink-0 text-[var(--text-faint)]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M9 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
               </div>
             );
             return clickable ? (
               <Link
                 key={d.deviceSn}
                 href={`/plant/${id}/dispositivos/${d.deviceSn}`}
-                className="block -mx-2 rounded-lg px-2 transition-colors hover:bg-white/5"
+                className="block -mx-2 rounded-lg px-2 transition-colors hover:bg-[var(--surface-2)]"
               >
                 {row}
               </Link>

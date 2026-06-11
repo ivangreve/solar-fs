@@ -262,6 +262,8 @@ export async function getDeviceDetail(deviceSn: string, ownerUserId: string): Pr
   device: { deviceSn: string; model: string | null; role: string; plantId: string };
   latest: Record<string, number | null>;
   today: Record<string, number | null>;
+  lastTs: string | null;
+  sohPct: number | null;
 } | null> {
   const ds = await getDataSource();
   // Ownership por join: un usuario no puede leer un deviceSn ajeno (cierra IDOR).
@@ -276,18 +278,26 @@ export async function getDeviceDetail(deviceSn: string, ownerUserId: string): Pr
   const today = localToday();
 
   const [latestRow]: Array<Record<string, unknown>> = await ds.query(
-    `SELECT * FROM telemetry WHERE device_sn = $1 ORDER BY ts DESC LIMIT 1`,
+    `SELECT *, ts::text AS ts_text FROM telemetry WHERE device_sn = $1 ORDER BY ts DESC LIMIT 1`,
     [deviceSn],
   );
   const [todayRow]: Array<Record<string, unknown>> = await ds.query(
     `SELECT * FROM daily_stats WHERE device_sn = $1 AND day = $2`,
     [deviceSn, today],
   );
+  // SOH más reciente (cambia lento; vive en health_snapshots, no en telemetry)
+  const [soh]: Array<{ soh_pct: number | null }> = await ds.query(
+    `SELECT soh_pct FROM health_snapshots
+     WHERE device_sn = $1 AND soh_pct IS NOT NULL ORDER BY day DESC LIMIT 1`,
+    [deviceSn],
+  );
 
   return {
     device: { deviceSn: dev.device_sn, model: dev.model, role: dev.role, plantId: dev.plant_id },
     latest: toCanonRecord(latestRow, TELEMETRY_FIELDS),
     today: toCanonRecord(todayRow, DAILY_FIELDS),
+    lastTs: (latestRow?.ts_text as string) ?? null,
+    sohPct: soh?.soh_pct != null ? Number(soh.soh_pct) : null,
   };
 }
 
