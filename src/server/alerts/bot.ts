@@ -107,7 +107,7 @@ export async function buildResumen(ds: DataSource): Promise<string> {
     const [peak]: Array<Record<string, string | null>> = await ds.query(
       `SELECT MAX(t.pv_power_w) pv_peak, MIN(t.soc_pct) soc_min, MAX(t.soc_pct) soc_max
        FROM telemetry t JOIN devices d ON d.device_sn = t.device_sn
-       WHERE d.plant_id = $1 AND (t.ts AT TIME ZONE $2) >= $3 AND (t.ts AT TIME ZONE $2) < ($3::date + 1)::text`,
+       WHERE d.plant_id = $1 AND (t.ts AT TIME ZONE $2)::date = $3::date`,
       [plantId, APP_TZ, today],
     );
 
