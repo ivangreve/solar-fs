@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { getPlantOverview, getPlantSeries } from "@/server/queries";
 import { requireUser } from "@/server/auth/session";
+import { getSolarForecast } from "@/server/forecast";
 import { parseDateFilter } from "@/lib/date-filter";
 import { StatTile } from "@/components/ui/StatTile";
+import { ForecastCard } from "@/components/ForecastCard";
 import { SectionCard } from "@/components/ui/SectionCard";
 import { IntradayChart } from "@/components/charts/IntradayChart";
 import { DailyBars } from "@/components/charts/DailyBars";
@@ -34,6 +36,11 @@ export default async function PlantPage({
   const series = await getPlantSeries(id, user.id, dia, rango);
   const stale = ov.lastTs ? (Date.now() - new Date(ov.lastTs).getTime()) / 60000 : null;
   const peak = series.intraday.reduce((m, d) => Math.max(m, d.pv), 0);
+  // Pronóstico: solo viendo "hoy" y con ubicación cargada (best-effort, nunca rompe la página)
+  const forecast =
+    esHoy && ov.plant.lat != null && ov.plant.lon != null
+      ? await getSolarForecast(id, ov.plant.lat, ov.plant.lon).catch(() => null)
+      : null;
 
   return (
     <div className="space-y-6">
@@ -68,6 +75,8 @@ export default async function PlantPage({
           <StatTile label="Batería (SOC prom.)" value={ov.socAvg != null ? String(ov.socAvg) : "—"} unit="%" accent="battery" index={6} />
         </section>
       )}
+
+      {forecast && <ForecastCard forecast={forecast} />}
 
       <SectionCard title={`De dónde salió cada watt · ${etiquetaDia}`}>
         <IntradayChart data={series.intraday} />

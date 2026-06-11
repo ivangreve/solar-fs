@@ -28,6 +28,13 @@ export class Plant {
   @Column("varchar", { nullable: true })
   tz!: string | null;
 
+  /** Ubicación para el pronóstico solar (Felicity no siempre la trae; editable). */
+  @Column("double precision", { nullable: true })
+  lat!: number | null;
+
+  @Column("double precision", { nullable: true })
+  lon!: number | null;
+
   @Column("date", { name: "install_date", nullable: true })
   installDate!: string | null;
 

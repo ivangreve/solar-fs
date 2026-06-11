@@ -16,6 +16,12 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "solar-fs · Monitoreo solar",
   description: "Estadísticas útiles para tu sistema solar Felicity",
+  // PWA en iOS (Android/desktop usan el manifest)
+  appleWebApp: { capable: true, title: "solar-fs", statusBarStyle: "black-translucent" },
+};
+
+export const viewport = {
+  themeColor: "#0a0a0a",
 };
 
 export default async function RootLayout({

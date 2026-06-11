@@ -7,8 +7,9 @@ import { DailyStat } from "./entities/DailyStat";
 import { HealthSnapshot } from "./entities/HealthSnapshot";
 import { User } from "./entities/User";
 import { Session } from "./entities/Session";
+import { AlertState } from "./entities/AlertState";
 
-const entities = [Plant, Device, Telemetry, DailyStat, HealthSnapshot, User, Session];
+const entities = [Plant, Device, Telemetry, DailyStat, HealthSnapshot, User, Session, AlertState];
 
 export function createDataSource(opts: { synchronize?: boolean } = {}): DataSource {
   const url = process.env.DATABASE_URL;
