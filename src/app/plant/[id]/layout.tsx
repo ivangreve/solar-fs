@@ -6,6 +6,8 @@ import { PlantTabs } from "@/components/PlantTabs";
 import { PageShell } from "@/components/ui/PageShell";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LogoutButton } from "@/components/LogoutButton";
+import { DateFilter } from "@/components/DateFilter";
+import { localToday } from "@/server/time";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -39,6 +41,7 @@ export default async function PlantLayout({
         </div>
       </header>
       <PlantTabs plantId={id} />
+      <DateFilter today={localToday()} />
       <div className="mt-6">{children}</div>
     </PageShell>
   );

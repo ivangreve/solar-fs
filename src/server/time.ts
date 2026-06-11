@@ -18,3 +18,10 @@ export function localToday(): string {
     day: "2-digit",
   }).format(new Date());
 }
+
+/** Día siguiente a un "YYYY-MM-DD" (aritmética en UTC para no arrastrar TZ). */
+export function nextDay(day: string): string {
+  const d = new Date(`${day}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
+}

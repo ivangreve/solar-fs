@@ -1,13 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
 
 /** Tabs de la sección de planta, con indicador activo animado (layoutId). */
 export function PlantTabs({ plantId }: { plantId: string }) {
   const pathname = usePathname();
+  const sp = useSearchParams();
   const base = `/plant/${plantId}`;
+  // Preservar el filtro de fecha (?dia=&rango=) al navegar entre tabs.
+  const filter = new URLSearchParams();
+  for (const k of ["dia", "rango"]) {
+    const v = sp.get(k);
+    if (v) filter.set(k, v);
+  }
+  const qs = filter.size ? `?${filter}` : "";
   const tabs = [
     { label: "Resumen", href: base },
     { label: "Dispositivos", href: `${base}/dispositivos` },
@@ -24,7 +32,7 @@ export function PlantTabs({ plantId }: { plantId: string }) {
         return (
           <Link
             key={tab.href}
-            href={tab.href}
+            href={`${tab.href}${qs}`}
             className={`relative px-3 py-2 text-sm transition-colors ${
               active ? "text-[var(--text)]" : "text-[var(--text-muted)] hover:text-[var(--text)]"
             }`}

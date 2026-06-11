@@ -1,5 +1,6 @@
 import { getBatteryFleet, getEnergyDaily, getDeviceSeries } from "@/server/queries";
 import { requireUser } from "@/server/auth/session";
+import { parseDateFilter } from "@/lib/date-filter";
 import { SectionCard } from "@/components/ui/SectionCard";
 import { StatTile } from "@/components/ui/StatTile";
 import { SocArc } from "@/components/battery/SocArc";
@@ -18,12 +19,22 @@ function ago(ts: string | null): string {
   return `hace ${Math.round(m / 60)} h`;
 }
 
-export default async function BateriaPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function BateriaPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { id } = await params;
+  const { dia, rango, etiquetaDia } = parseDateFilter(await searchParams);
   const user = await requireUser();
-  const [fleet, daily] = await Promise.all([getBatteryFleet(id, user.id), getEnergyDaily(id, user.id)]);
+  const [fleet, daily] = await Promise.all([
+    getBatteryFleet(id, user.id),
+    getEnergyDaily(id, user.id, dia, rango),
+  ]);
 
-  const seriesList = await Promise.all(fleet.map((b) => getDeviceSeries(b.deviceSn, user.id)));
+  const seriesList = await Promise.all(fleet.map((b) => getDeviceSeries(b.deviceSn, user.id, dia, rango)));
   const socSeries: BatterySeries[] = fleet.map((b, i) => ({
     label: `Batería ${i + 1}`,
     points: seriesList[i].intraday.map((p) => ({ t: p.t, soc: p.soc })),
@@ -38,8 +49,8 @@ export default async function BateriaPage({ params }: { params: Promise<{ id: st
       <section className="grid gap-4 sm:grid-cols-3">
         <StatTile label="SOC del banco" value={socAvg != null ? String(socAvg) : "—"} unit="%" accent="battery"
           sub={`${fleet.length} baterías`} />
-        <StatTile label="Cargado hoy" value={fmtKwh(today?.eBatChar ?? 0)} accent="battery" />
-        <StatTile label="Descargado hoy" value={fmtKwh(today?.eBatDischar ?? 0)} accent="load" />
+        <StatTile label={`Cargado ${etiquetaDia}`} value={fmtKwh(today?.eBatChar ?? 0)} accent="battery" />
+        <StatTile label={`Descargado ${etiquetaDia}`} value={fmtKwh(today?.eBatDischar ?? 0)} accent="load" />
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2">
@@ -64,11 +75,11 @@ export default async function BateriaPage({ params }: { params: Promise<{ id: st
         ))}
       </section>
 
-      <SectionCard title="Estado de carga · hoy">
+      <SectionCard title={`Estado de carga · ${etiquetaDia}`}>
         <BatterySocChart series={socSeries} />
       </SectionCard>
 
-      <SectionCard title="Carga y descarga · últimos 30 días">
+      <SectionCard title={`Carga y descarga · últimos ${rango} días`}>
         <ChargeDischargeBars data={daily} />
         <p className="mt-3 text-xs text-[var(--text-faint)]">
           El detalle por celda y el conteo de ciclos no están disponibles en este modelo de batería.

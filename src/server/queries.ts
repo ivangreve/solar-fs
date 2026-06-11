@@ -1,6 +1,6 @@
 import { getDataSource } from "./db/data-source";
 import { Plant } from "./db/entities/Plant";
-import { APP_TZ, localToday } from "./time";
+import { APP_TZ, localToday, nextDay } from "./time";
 
 export interface PlantOverview {
   plant: Plant;
@@ -40,11 +40,15 @@ export async function getPlants(ownerUserId: string): Promise<Plant[]> {
   return ds.getRepository(Plant).find({ where: { ownerUserId }, order: { name: "ASC" } });
 }
 
-export async function getPlantOverview(plantId: string, ownerUserId: string): Promise<PlantOverview | null> {
+export async function getPlantOverview(
+  plantId: string,
+  ownerUserId: string,
+  day = localToday(),
+): Promise<PlantOverview | null> {
   const ds = await getDataSource();
   const plant = await ds.getRepository(Plant).findOneBy({ id: plantId, ownerUserId });
   if (!plant) return null;
-  const today = localToday();
+  const today = day; // agregados del día seleccionado (en vivo sigue siendo "ahora")
 
   // Último dato en vivo por dispositivo (DISTINCT ON)
   const live: Array<{ pv: number; load: number; soc: number | null; ts: string }> = await ds.query(
@@ -89,10 +93,14 @@ export interface PlantSeries {
   intraday: Array<{ t: string; pv: number; load: number; gen: number; soc: number | null }>;
 }
 
-export async function getPlantSeries(plantId: string, ownerUserId: string): Promise<PlantSeries> {
+export async function getPlantSeries(
+  plantId: string,
+  ownerUserId: string,
+  day = localToday(),
+  rangeDays = 30,
+): Promise<PlantSeries> {
   const ds = await getDataSource();
   if (!(await plantOwned(ds, plantId, ownerUserId))) return { daily: [], intraday: [] };
-  const today = localToday();
 
   const daily: PlantSeries["daily"] = (
     await ds.query(
@@ -102,9 +110,9 @@ export async function getPlantSeries(plantId: string, ownerUserId: string): Prom
               COALESCE(SUM(e_load_kwh),0) e_load,
               COALESCE(SUM(e_pv_kwh),0) - COALESCE(SUM(e_grid_feed_kwh),0) self_cons_kwh
        FROM daily_stats ds JOIN devices d ON d.device_sn = ds.device_sn
-       WHERE d.plant_id = $1
-       GROUP BY ds.day ORDER BY ds.day DESC LIMIT 30`,
-      [plantId],
+       WHERE d.plant_id = $1 AND ds.day <= $2
+       GROUP BY ds.day ORDER BY ds.day DESC LIMIT $3`,
+      [plantId, day, rangeDays],
     )
   )
     .reverse()
@@ -116,21 +124,25 @@ export async function getPlantSeries(plantId: string, ownerUserId: string): Prom
       selfCons: Number(r.e_pv) > 0 ? Math.round((Number(r.self_cons_kwh) / Number(r.e_pv)) * 1000) / 10 : null,
     }));
 
-  // Intradía del dispositivo con más datos hoy (el inversor principal)
+  // Intradía del dispositivo con más datos en el día (el inversor principal)
+  const dayStart = `${day} 00:00:00`;
+  const dayEnd = `${nextDay(day)} 00:00:00`;
   const [main]: Array<{ device_sn: string }> = await ds.query(
     `SELECT t.device_sn FROM telemetry t JOIN devices d ON d.device_sn = t.device_sn
-     WHERE d.plant_id = $1 AND (t.ts AT TIME ZONE $3) >= $2
+     WHERE d.plant_id = $1 AND (t.ts AT TIME ZONE $4) >= $2 AND (t.ts AT TIME ZONE $4) < $3
      GROUP BY t.device_sn, d.role
      ORDER BY (d.role = 'inverter') DESC, COUNT(*) DESC LIMIT 1`,
-    [plantId, `${today} 00:00:00`, APP_TZ],
+    [plantId, dayStart, dayEnd, APP_TZ],
   );
 
   const intraday: PlantSeries["intraday"] = main
     ? (
         await ds.query(
-          `SELECT to_char(ts AT TIME ZONE $3, 'HH24:MI') t, pv_power_w pv, load_power_w load, gen_power_w gen, soc_pct soc
-           FROM telemetry WHERE device_sn = $1 AND (ts AT TIME ZONE $3) >= $2 ORDER BY ts ASC`,
-          [main.device_sn, `${today} 00:00:00`, APP_TZ],
+          `SELECT to_char(ts AT TIME ZONE $4, 'HH24:MI') t, pv_power_w pv, load_power_w load, gen_power_w gen, soc_pct soc
+           FROM telemetry
+           WHERE device_sn = $1 AND (ts AT TIME ZONE $4) >= $2 AND (ts AT TIME ZONE $4) < $3
+           ORDER BY ts ASC`,
+          [main.device_sn, dayStart, dayEnd, APP_TZ],
         )
       ).map((r: Record<string, string | null>) => ({
         t: r.t as string,
@@ -301,20 +313,26 @@ export async function getDeviceDetail(deviceSn: string, ownerUserId: string): Pr
   };
 }
 
-export async function getDeviceSeries(deviceSn: string, ownerUserId: string): Promise<{
+export async function getDeviceSeries(
+  deviceSn: string,
+  ownerUserId: string,
+  day = localToday(),
+  rangeDays = 30,
+): Promise<{
   intraday: Array<{ t: string; pv: number; load: number; soc: number | null; gen: number }>;
   daily: Array<{ day: string; ePv: number; eLoad: number; eGen: number }>;
 }> {
   const ds = await getDataSource();
   if (!(await deviceOwned(ds, deviceSn, ownerUserId))) return { intraday: [], daily: [] };
-  const today = localToday();
 
   const intraday: Array<{ t: string; pv: number; load: number; soc: number | null; gen: number }> =
     (
       await ds.query(
-        `SELECT to_char(ts AT TIME ZONE $3, 'HH24:MI') t, pv_power_w pv, load_power_w load, soc_pct soc, gen_power_w gen
-         FROM telemetry WHERE device_sn = $1 AND (ts AT TIME ZONE $3) >= $2 ORDER BY ts ASC`,
-        [deviceSn, `${today} 00:00:00`, APP_TZ],
+        `SELECT to_char(ts AT TIME ZONE $4, 'HH24:MI') t, pv_power_w pv, load_power_w load, soc_pct soc, gen_power_w gen
+         FROM telemetry
+         WHERE device_sn = $1 AND (ts AT TIME ZONE $4) >= $2 AND (ts AT TIME ZONE $4) < $3
+         ORDER BY ts ASC`,
+        [deviceSn, `${day} 00:00:00`, `${nextDay(day)} 00:00:00`, APP_TZ],
       )
     ).map((r: Record<string, string | null>) => ({
       t: r.t as string,
@@ -328,8 +346,8 @@ export async function getDeviceSeries(deviceSn: string, ownerUserId: string): Pr
     await ds.query(
       `SELECT day::text AS day, COALESCE(e_pv_kwh,0) e_pv, COALESCE(e_load_kwh,0) e_load,
               COALESCE(e_gen_kwh,0) e_gen
-       FROM daily_stats WHERE device_sn = $1 ORDER BY day DESC LIMIT 30`,
-      [deviceSn],
+       FROM daily_stats WHERE device_sn = $1 AND day <= $2 ORDER BY day DESC LIMIT $3`,
+      [deviceSn, day, rangeDays],
     )
   )
     .reverse()
@@ -388,7 +406,12 @@ export async function getBatteryFleet(plantId: string, ownerUserId: string): Pro
   }));
 }
 
-export async function getGeneratorSummary(plantId: string, ownerUserId: string): Promise<{
+export async function getGeneratorSummary(
+  plantId: string,
+  ownerUserId: string,
+  day = localToday(),
+  rangeDays = 30,
+): Promise<{
   totalKwh: number;
   todayKwh: number;
   last30: Array<{ day: string; kwh: number }>;
@@ -396,26 +419,26 @@ export async function getGeneratorSummary(plantId: string, ownerUserId: string):
 }> {
   const ds = await getDataSource();
   if (!(await plantOwned(ds, plantId, ownerUserId))) return { totalKwh: 0, todayKwh: 0, last30: [], everUsed: false };
-  const today = localToday();
 
   const last30: Array<{ day: string; kwh: number }> = (
     await ds.query(
       `SELECT ds.day::text AS day, COALESCE(SUM(ds.e_gen_kwh),0) kwh
        FROM daily_stats ds JOIN devices d ON d.device_sn = ds.device_sn
-       WHERE d.plant_id = $1
-       GROUP BY ds.day ORDER BY ds.day DESC LIMIT 30`,
-      [plantId],
+       WHERE d.plant_id = $1 AND ds.day <= $2
+       GROUP BY ds.day ORDER BY ds.day DESC LIMIT $3`,
+      [plantId, day, rangeDays],
     )
   )
     .reverse()
     .map((r: Record<string, string>) => ({ day: r.day, kwh: Number(r.kwh) }));
 
+  // total = histórico completo (no depende del filtro); today_kwh = el día seleccionado
   const [tot]: Array<{ total: number; today_kwh: number }> = await ds.query(
     `SELECT COALESCE(SUM(ds.e_gen_kwh),0) total,
             COALESCE(SUM(ds.e_gen_kwh) FILTER (WHERE ds.day = $2),0) today_kwh
      FROM daily_stats ds JOIN devices d ON d.device_sn = ds.device_sn
      WHERE d.plant_id = $1`,
-    [plantId, today],
+    [plantId, day],
   );
 
   const totalKwh = Number(tot?.total ?? 0);
@@ -427,7 +450,12 @@ export async function getGeneratorSummary(plantId: string, ownerUserId: string):
   };
 }
 
-export async function getEnergyDaily(plantId: string, ownerUserId: string): Promise<
+export async function getEnergyDaily(
+  plantId: string,
+  ownerUserId: string,
+  day = localToday(),
+  rangeDays = 30,
+): Promise<
   Array<{
     day: string;
     ePv: number;
@@ -452,9 +480,9 @@ export async function getEnergyDaily(plantId: string, ownerUserId: string): Prom
               COALESCE(SUM(ds.e_bat_dischar_kwh) FILTER (WHERE d.role = 'inverter'),0) e_bat_dischar,
               COALESCE(SUM(ds.e_gen_kwh),0) e_gen
        FROM daily_stats ds JOIN devices d ON d.device_sn = ds.device_sn
-       WHERE d.plant_id = $1
-       GROUP BY ds.day ORDER BY ds.day DESC LIMIT 30`,
-      [plantId],
+       WHERE d.plant_id = $1 AND ds.day <= $2
+       GROUP BY ds.day ORDER BY ds.day DESC LIMIT $3`,
+      [plantId, day, rangeDays],
     )
   )
     .reverse()
