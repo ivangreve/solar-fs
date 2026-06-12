@@ -454,6 +454,76 @@ export async function getGeneratorSummary(
   };
 }
 
+export interface FinanceSummary {
+  plant: Plant;
+  /** Por mes (YYYY-MM): energía para valorizar. Histórico completo. */
+  monthly: Array<{ month: string; ePv: number; eLoad: number; eGridIn: number; eGen: number }>;
+  totals: { ePv: number; eLoad: number; eGridIn: number; eGen: number; days: number; firstDay: string | null };
+  /** Promedio diario de los últimos 90 días con datos (para proyectar payback). */
+  last90: { eLoad: number; eGridIn: number; eGen: number; days: number };
+}
+
+/** Datos de energía para la vista Finanzas. La plata se calcula en el server component con la config de la planta. */
+export async function getFinanceSummary(plantId: string, ownerUserId: string): Promise<FinanceSummary | null> {
+  const ds = await getDataSource();
+  const plant = await ds.getRepository(Plant).findOneBy({ id: plantId, ownerUserId });
+  if (!plant) return null;
+
+  const monthly = (
+    await ds.query(
+      `SELECT substr(ds.day::text, 1, 7) AS month,
+              COALESCE(SUM(e_pv_kwh),0) e_pv, COALESCE(SUM(e_load_kwh),0) e_load,
+              COALESCE(SUM(e_grid_in_kwh),0) e_grid_in, COALESCE(SUM(e_gen_kwh),0) e_gen
+       FROM daily_stats ds JOIN devices d ON d.device_sn = ds.device_sn
+       WHERE d.plant_id = $1
+       GROUP BY 1 ORDER BY 1 ASC`,
+      [plantId],
+    )
+  ).map((r: Record<string, string>) => ({
+    month: r.month,
+    ePv: Number(r.e_pv),
+    eLoad: Number(r.e_load),
+    eGridIn: Number(r.e_grid_in),
+    eGen: Number(r.e_gen),
+  }));
+
+  const [tot]: Array<Record<string, string | null>> = await ds.query(
+    `SELECT COALESCE(SUM(e_pv_kwh),0) e_pv, COALESCE(SUM(e_load_kwh),0) e_load,
+            COALESCE(SUM(e_grid_in_kwh),0) e_grid_in, COALESCE(SUM(e_gen_kwh),0) e_gen,
+            COUNT(DISTINCT ds.day) days, MIN(ds.day)::text first_day
+     FROM daily_stats ds JOIN devices d ON d.device_sn = ds.device_sn
+     WHERE d.plant_id = $1`,
+    [plantId],
+  );
+
+  const [l90]: Array<Record<string, string>> = await ds.query(
+    `SELECT COALESCE(SUM(e_load_kwh),0) e_load, COALESCE(SUM(e_grid_in_kwh),0) e_grid_in,
+            COALESCE(SUM(e_gen_kwh),0) e_gen, COUNT(DISTINCT ds.day) days
+     FROM daily_stats ds JOIN devices d ON d.device_sn = ds.device_sn
+     WHERE d.plant_id = $1 AND ds.day >= CURRENT_DATE - 90`,
+    [plantId],
+  );
+
+  return {
+    plant,
+    monthly,
+    totals: {
+      ePv: Number(tot?.e_pv ?? 0),
+      eLoad: Number(tot?.e_load ?? 0),
+      eGridIn: Number(tot?.e_grid_in ?? 0),
+      eGen: Number(tot?.e_gen ?? 0),
+      days: Number(tot?.days ?? 0),
+      firstDay: (tot?.first_day as string) ?? null,
+    },
+    last90: {
+      eLoad: Number(l90?.e_load ?? 0),
+      eGridIn: Number(l90?.e_grid_in ?? 0),
+      eGen: Number(l90?.e_gen ?? 0),
+      days: Number(l90?.days ?? 0),
+    },
+  };
+}
+
 export async function getEnergyDaily(
   plantId: string,
   ownerUserId: string,

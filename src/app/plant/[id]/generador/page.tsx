@@ -1,4 +1,4 @@
-import { getGeneratorSummary, getEnergyDaily } from "@/server/queries";
+import { getGeneratorSummary, getEnergyDaily, getPlants } from "@/server/queries";
 import { requireUser } from "@/server/auth/session";
 import { parseDateFilter } from "@/lib/date-filter";
 import { SectionCard } from "@/components/ui/SectionCard";
@@ -9,9 +9,8 @@ import { fmtKwh, fmtMoney, fmtPct } from "@/components/ui/tokens";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Estimaciones (configurables). Un generador a nafta rinde ~3 kWh por litro.
-const GEN_KWH_PER_LITER = 3.0;
-const NAFTA_PRICE = 1200; // ARS por litro (estimado · configurable)
+// Defaults si la planta no tiene config (editable en Finanzas → Parámetros económicos).
+const GEN_KWH_PER_L_DEFAULT = 3.0;
 
 export default async function GeneradorPage({
   params,
@@ -23,15 +22,19 @@ export default async function GeneradorPage({
   const { id } = await params;
   const { dia, rango, etiquetaDia } = parseDateFilter(await searchParams);
   const user = await requireUser();
-  const [gen, daily] = await Promise.all([
+  const [gen, daily, plants] = await Promise.all([
     getGeneratorSummary(id, user.id, dia, rango),
     getEnergyDaily(id, user.id, dia, rango),
+    getPlants(user.id),
   ]);
+  const plant = plants.find((p) => p.id === id);
 
+  const rendimiento = plant?.genKwhPerL ?? GEN_KWH_PER_L_DEFAULT;
+  const naftaPrice = plant?.fuelPricePerL ?? null;
   const totalLoad = daily.reduce((s, d) => s + d.eLoad, 0);
   const sharePct = totalLoad > 0 ? (gen.totalKwh / totalLoad) * 100 : 0;
-  const liters = gen.totalKwh / GEN_KWH_PER_LITER;
-  const cost = liters * NAFTA_PRICE;
+  const liters = gen.totalKwh / rendimiento;
+  const cost = naftaPrice != null ? liters * naftaPrice : null;
 
   return (
     <div className="space-y-6">
@@ -55,9 +58,14 @@ export default async function GeneradorPage({
         <StatTile label="Energía del generador" value={fmtKwh(gen.totalKwh)} accent="generator"
           sub={`${etiquetaDia} ${fmtKwh(gen.todayKwh)}`} />
         <StatTile label="Nafta estimada" value={liters > 0 ? liters.toFixed(1) : "0"} unit="L" accent="generator"
-          sub={`~${GEN_KWH_PER_LITER} kWh/L · estimado`} />
-        <StatTile label="Costo estimado" value={fmtMoney(cost, "ARS")} accent="money"
-          sub="estimado · configurable" />
+          sub={`~${rendimiento} kWh/L${plant?.genKwhPerL == null ? " · default" : ""}`} />
+        {cost != null ? (
+          <StatTile label="Costo estimado" value={fmtMoney(cost, plant?.currency ?? "ARS")} accent="money"
+            sub="según tu precio de nafta" />
+        ) : (
+          <StatTile label="Costo estimado" value="—" accent="money"
+            sub="cargá el precio de la nafta en Finanzas" />
+        )}
         <StatTile label="Consumo cubierto" value={fmtPct(sharePct, 1)} accent="generator"
           sub="por nafta vs sol+batería" />
       </section>
