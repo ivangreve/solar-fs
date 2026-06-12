@@ -6,7 +6,7 @@ import { User } from "../db/entities/User";
 import { decryptSecret } from "./secretbox";
 import { syncPlantsAndDevices, ingestSnapshots, rollupDay } from "../ingest/ingest";
 import { localToday } from "../time";
-import { checkAlerts } from "../alerts/check";
+import { checkAlerts, checkIngestAlerts } from "../alerts/check";
 
 /** Cliente Felicity de un usuario (desencripta su contraseña guardada). */
 export function clientForUser(user: User): FelicityClient {
@@ -46,6 +46,7 @@ export async function ingestAllUsers(ds: DataSource): Promise<UserResult[]> {
   }
 
   // Alertas tras la ingesta (Telegram; no-op si no está configurado, nunca tumba el cron)
+  await checkIngestAlerts(ds, results).catch((err) => console.error("[alerts]", (err as Error).message));
   await checkAlerts(ds).catch((err) => console.error("[alerts]", (err as Error).message));
 
   return results;

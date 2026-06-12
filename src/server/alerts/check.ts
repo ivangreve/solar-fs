@@ -1,4 +1,5 @@
 import type { DataSource } from "typeorm";
+import type { UserResult } from "../auth/ingest-users";
 import { AlertState } from "../db/entities/AlertState";
 import { telegramEnabled, sendTelegram } from "./telegram";
 import { APP_TZ } from "../time";
@@ -55,6 +56,31 @@ async function transition(
 /** Hora local corta para los mensajes. */
 function hhmm(): string {
   return new Intl.DateTimeFormat("es-AR", { timeZone: APP_TZ, hour: "2-digit", minute: "2-digit" }).format(new Date());
+}
+
+const escapeHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+/**
+ * Alerta de ingesta caída POR USUARIO, con la acción para resolverla en el mensaje.
+ * Mismo esquema de histéresis: avisa al entrar en falla y al recuperarse.
+ */
+export async function checkIngestAlerts(ds: DataSource, results: UserResult[]): Promise<void> {
+  if (!telegramEnabled()) return;
+  for (const r of results) {
+    const failing = r.error != null;
+    const hint =
+      r.error?.includes("Unsupported state") || r.error?.includes("unable to authenticate")
+        ? "\n👉 Entrá a solar-fs.vercel.app, cerrá sesión y volvé a iniciarla — eso re-encripta tu contraseña de Felicity y la ingesta revive sola."
+        : "\n👉 Si persiste varios ciclos, revisá las credenciales de Felicity o el estado de su API.";
+    await transition(
+      ds,
+      `ingest_fail:${r.userName}`,
+      failing,
+      !failing,
+      `🛑 <b>Ingesta caída</b> (${r.userName}) · ${hhmm()}\n<i>${escapeHtml(r.error ?? "")}</i>${hint}`,
+      `✅ <b>Ingesta recuperada</b> (${r.userName}) — los datos vuelven a fluir · ${hhmm()}`,
+    );
+  }
 }
 
 export async function checkAlerts(ds: DataSource): Promise<void> {
