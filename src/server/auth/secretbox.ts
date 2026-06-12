@@ -30,11 +30,27 @@ export function encryptSecret(plain: string): string {
   return [iv, cipher.getAuthTag(), ct].map((b) => b.toString("base64")).join(":");
 }
 
-/** "iv:tag:ciphertext" → plain. Lanza si el tag no valida (datos manipulados). */
+/**
+ * Error tipado: el secreto guardado no se puede desencriptar con la clave actual
+ * (fue encriptado con OTRA APP_ENCRYPTION_KEY, o los datos están corruptos).
+ * La única recuperación es que el dueño re-ingrese la credencial.
+ */
+export class CredencialIndescifrable extends Error {
+  constructor() {
+    super("Credencial encriptada con otra clave — requiere re-login del usuario");
+    this.name = "CredencialIndescifrable";
+  }
+}
+
+/** "iv:tag:ciphertext" → plain. Lanza CredencialIndescifrable si el tag no valida. */
 export function decryptSecret(stored: string): string {
   const [iv, tag, ct] = stored.split(":").map((s) => Buffer.from(s, "base64"));
-  if (!iv || !tag || !ct) throw new Error("Formato de secreto inválido");
-  const decipher = createDecipheriv("aes-256-gcm", key(), iv);
-  decipher.setAuthTag(tag);
-  return Buffer.concat([decipher.update(ct), decipher.final()]).toString("utf8");
+  if (!iv || !tag || !ct) throw new CredencialIndescifrable();
+  try {
+    const decipher = createDecipheriv("aes-256-gcm", key(), iv);
+    decipher.setAuthTag(tag);
+    return Buffer.concat([decipher.update(ct), decipher.final()]).toString("utf8");
+  } catch {
+    throw new CredencialIndescifrable();
+  }
 }

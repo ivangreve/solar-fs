@@ -4,6 +4,9 @@ import { ingestAllUsers } from "@/server/auth/ingest-users";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// El catch-up de huecos necesita aire (default 10s en Hobby). El presupuesto interno
+// de ingestAllUsers es 45s, con margen contra este tope.
+export const maxDuration = 60;
 
 /**
  * Endpoint de ingesta para Vercel Cron (cada 5 min, ver vercel.json).

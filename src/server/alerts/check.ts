@@ -69,8 +69,8 @@ export async function checkIngestAlerts(ds: DataSource, results: UserResult[]): 
   for (const r of results) {
     const failing = r.error != null;
     const hint =
-      r.error?.includes("Unsupported state") || r.error?.includes("unable to authenticate")
-        ? "\n👉 Entrá a solar-fs.vercel.app, cerrá sesión y volvé a iniciarla — eso re-encripta tu contraseña de Felicity y la ingesta revive sola."
+      r.error?.includes("re-login") || r.error?.includes("Unsupported state")
+        ? "\n👉 Ya te cerramos la sesión: entrá a solar-fs.vercel.app y volvé a iniciarla — eso re-encripta tu contraseña de Felicity, la ingesta revive y el hueco de datos se recupera solo del histórico."
         : "\n👉 Si persiste varios ciclos, revisá las credenciales de Felicity o el estado de su API.";
     await transition(
       ds,

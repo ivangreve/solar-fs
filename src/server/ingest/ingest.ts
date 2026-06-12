@@ -129,12 +129,17 @@ async function historyPage(
   }
 }
 
-/** Backfill: trae TODO el histórico crudo (5-min) de un dispositivo, día por día. */
+/**
+ * Backfill: trae el histórico crudo (5-min) de un dispositivo, día por día.
+ * `deadline` (epoch ms) lo corta limpio entre páginas: como los upserts son
+ * idempotentes, una corrida posterior continúa donde quedó.
+ */
 export async function backfillDevice(
   ds: DataSource,
   api: FelicityClient,
   dev: Device,
   fromDay: string,
+  deadline?: number,
 ): Promise<number> {
   const telRepo = ds.getRepository(Telemetry);
   let inserted = 0;
@@ -144,6 +149,7 @@ export async function backfillDevice(
     let page = 1;
     let totalPage = 1;
     do {
+      if (deadline && Date.now() > deadline) return inserted;
       await sleep(500); // pacing: no castigar la API (evita el 996)
       const res = await historyPage(api, dev, dateStr, page);
       const rows = res.dataList ?? res.data ?? [];

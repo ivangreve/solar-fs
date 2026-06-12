@@ -46,7 +46,13 @@ export async function getDataSource(): Promise<DataSource> {
   if (_ds?.isInitialized) return _ds;
   if (!_init) {
     _ds = createDataSource();
-    _init = _ds.initialize();
+    // Si el init falla, soltar el singleton: el próximo request reintenta desde cero
+    // (si no, una caída transitoria de la DB deja la instancia rota hasta reciclarla).
+    _init = _ds.initialize().catch((err) => {
+      _ds = null;
+      _init = null;
+      throw err;
+    });
   }
   return _init;
 }
