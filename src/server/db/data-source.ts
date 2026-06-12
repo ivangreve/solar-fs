@@ -14,6 +14,18 @@ const entities = [Plant, Device, Telemetry, DailyStat, HealthSnapshot, User, Ses
 export function createDataSource(opts: { synchronize?: boolean } = {}): DataSource {
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error("Falta DATABASE_URL en el entorno");
+
+  // Guardrail: el dev server de Next (NODE_ENV=development) jamás se conecta a una DB
+  // remota — un dev contra prod ya causó un incidente (credenciales re-encriptadas con
+  // otra clave). Los scripts CLI (db-sync, backfill) corren sin NODE_ENV y no se ven
+  // afectados. Escape intencional: ALLOW_REMOTE_DB=1.
+  const esLocal = /localhost|127\.0\.0\.1|host\.docker\.internal/.test(url);
+  if (process.env.NODE_ENV === "development" && !esLocal && process.env.ALLOW_REMOTE_DB !== "1") {
+    throw new Error(
+      "DEV apuntando a DB remota (¿prod?). Corregí DATABASE_URL en .env.local — " +
+        "tip: mv .env.local .env.vercel-prod — o seteá ALLOW_REMOTE_DB=1 si es intencional.",
+    );
+  }
   return new DataSource({
     type: "postgres",
     url,
