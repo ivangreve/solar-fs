@@ -19,6 +19,19 @@ export async function loginAction(_prev: LoginState, formData: FormData): Promis
   const password = String(formData.get("password") ?? "");
   if (!userName || !password) return { error: "Completá usuario y contraseña." };
 
+  // Guardrail: en dev, NUNCA escribir credenciales en una DB remota. Un login en dev
+  // contra la DB de prod re-encripta la contraseña con la clave LOCAL y prod deja de
+  // poder desencriptarla (incidente 2026-06-11: ingesta caída por esto mismo).
+  const dbUrl = process.env.DATABASE_URL ?? "";
+  const dbEsLocal = /localhost|127\.0\.0\.1|host\.docker\.internal/.test(dbUrl);
+  if (process.env.NODE_ENV === "development" && !dbEsLocal && process.env.ALLOW_REMOTE_DB !== "1") {
+    return {
+      error:
+        "Estás en DEV apuntando a una DB remota (¿prod?). Corregí DATABASE_URL en .env.local " +
+        "o seteá ALLOW_REMOTE_DB=1 si es intencional.",
+    };
+  }
+
   const client = new FelicityClient(userName, password);
   let userId: string;
   try {
