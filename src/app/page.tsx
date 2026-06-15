@@ -3,6 +3,7 @@ import { getPlants, getPlantOverview } from "@/server/queries";
 import { requireUser } from "@/server/auth/session";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LogoutButton } from "@/components/LogoutButton";
+import { SettingsLink } from "@/components/SettingsLink";
 import { Reveal } from "@/components/ui/Reveal";
 import { ENERGY_COLORS, fmtW, fmtKwh } from "@/components/ui/tokens";
 
@@ -32,14 +33,15 @@ export default async function Home() {
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-12">
-      <div className="flex items-start justify-between">
-        <div>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
           <h1 className="text-2xl font-semibold text-[var(--text)]">solar-fs</h1>
-          <p className="mt-1 text-sm text-[var(--text-muted)]">
+          <p className="mt-1 truncate text-sm text-[var(--text-muted)]">
             Hola{user.realName ? `, ${user.realName}` : ""} — tus plantas Felicity
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
+          <SettingsLink />
           <ThemeToggle />
           <LogoutButton />
         </div>

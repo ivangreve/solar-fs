@@ -30,18 +30,14 @@ export async function updatePlantConfigAction(
   if (!plant) return { error: "Planta no encontrada." };
 
   const buyTariff = numOrNull(formData.get("buyTariff"));
-  const fuelPricePerL = numOrNull(formData.get("fuelPricePerL"));
-  const genKwhPerL = numOrNull(formData.get("genKwhPerL"));
   const systemCost = numOrNull(formData.get("systemCost"));
-  if ([buyTariff, fuelPricePerL, genKwhPerL, systemCost].includes(undefined)) {
+  if ([buyTariff, systemCost].includes(undefined)) {
     return { error: "Revisá los valores: tienen que ser números positivos (o vacío)." };
   }
   const currency = String(formData.get("currency") ?? "ARS").trim().toUpperCase().slice(0, 3) || "ARS";
 
   await ds.getRepository(Plant).update(plantId, {
     buyTariff: buyTariff as number | null,
-    fuelPricePerL: fuelPricePerL as number | null,
-    genKwhPerL: genKwhPerL as number | null,
     systemCost: systemCost as number | null,
     currency,
   });

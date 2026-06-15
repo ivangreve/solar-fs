@@ -6,6 +6,7 @@ import { PlantTabs } from "@/components/PlantTabs";
 import { PageShell } from "@/components/ui/PageShell";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LogoutButton } from "@/components/LogoutButton";
+import { SettingsLink } from "@/components/SettingsLink";
 import { DateFilter } from "@/components/DateFilter";
 import { localToday } from "@/server/time";
 
@@ -28,14 +29,15 @@ export default async function PlantLayout({
 
   return (
     <PageShell>
-      <header className="mb-4 flex items-start justify-between">
-        <div>
+      <header className="mb-4 flex items-start justify-between gap-3">
+        <div className="min-w-0">
           <Link href="/" className="text-xs text-[var(--text-faint)] transition-colors hover:text-[var(--text-muted)]">
             ← Plantas
           </Link>
-          <h1 className="text-2xl font-semibold text-[var(--text)]">{plant.name}</h1>
+          <h1 className="truncate text-lg font-semibold text-[var(--text)] sm:text-2xl">{plant.name}</h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
+          <SettingsLink />
           <ThemeToggle />
           <LogoutButton />
         </div>

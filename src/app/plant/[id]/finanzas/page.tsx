@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getFinanceSummary } from "@/server/queries";
 import { requireUser } from "@/server/auth/session";
 import { StatTile } from "@/components/ui/StatTile";
@@ -25,9 +26,9 @@ export default async function FinanzasPage({ params }: { params: Promise<{ id: s
   if (!fin) return <div className="text-[var(--text-muted)]">Planta no encontrada.</div>;
 
   const { plant, totals, monthly, last90 } = fin;
-  const tarifa = plant.buyTariff;
-  const nafta = plant.fuelPricePerL;
-  const rendimiento = plant.genKwhPerL ?? GEN_KWH_PER_L_DEFAULT;
+  const tarifa = plant.buyTariff; // tarifa de red: por planta
+  const nafta = user.fuelPricePerL; // nafta + generador: por usuario (config)
+  const rendimiento = user.genKwhPerL ?? GEN_KWH_PER_L_DEFAULT;
   const cur = plant.currency;
   const configurado = tarifa != null || nafta != null;
 
@@ -80,7 +81,7 @@ export default async function FinanzasPage({ params }: { params: Promise<{ id: s
             <StatTile label="Ahorro solar histórico" to={ahorroTotal} kind="int" unit={cur} accent="money"
               sub={`${fmt(solarKwh(totals))} kWh cubiertos por tu sistema · ${totals.days} días`} index={0} />
             <StatTile label="Costo generador histórico" to={costoGenTotal} kind="int" unit={cur} accent="generator"
-              sub={`${litrosTotal.toFixed(1)} L de nafta estimados`} index={1} />
+              sub={nafta != null ? `${litrosTotal.toFixed(1)} L de nafta estimados` : "cargá el precio de la nafta en Configuración"} index={1} />
             <StatTile label="Ahorro neto" to={netoTotal} kind="int" unit={cur} accent="battery"
               sub={netoDiario90 > 0 ? `~${fmt(netoDiario90 * 30.44)} ${cur}/mes al ritmo actual` : ""} index={2} />
             {payback ? (
@@ -105,17 +106,19 @@ export default async function FinanzasPage({ params }: { params: Promise<{ id: s
         </>
       )}
 
-      <SectionCard title="Parámetros económicos">
+      <SectionCard title="Parámetros de esta planta">
         <PlantConfigForm
           plantId={id}
           defaults={{
             buyTariff: plant.buyTariff,
-            fuelPricePerL: plant.fuelPricePerL,
-            genKwhPerL: plant.genKwhPerL,
             systemCost: plant.systemCost,
             currency: plant.currency,
           }}
         />
+        <p className="mt-4 text-xs text-[var(--text-faint)]">
+          El precio de la nafta y tu generador se cargan en{" "}
+          <Link href="/config" className="text-amber-400 hover:underline">Configuración</Link> (son por usuario).
+        </p>
       </SectionCard>
     </div>
   );

@@ -51,14 +51,6 @@ export class Plant {
   @Column("double precision", { name: "feed_tariff", nullable: true })
   feedTariff!: number | null;
 
-  /** Precio del combustible del generador (por litro, en `currency`). */
-  @Column("double precision", { name: "fuel_price_per_l", nullable: true })
-  fuelPricePerL!: number | null;
-
-  /** Rendimiento del generador (kWh por litro). Default razonable: 3. */
-  @Column("double precision", { name: "gen_kwh_per_l", nullable: true })
-  genKwhPerL!: number | null;
-
   @Column("varchar", { default: "USD" })
   currency!: string;
 

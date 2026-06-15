@@ -5,8 +5,6 @@ import { updatePlantConfigAction, type ConfigState } from "@/server/plants/actio
 
 type Defaults = {
   buyTariff: number | null;
-  fuelPricePerL: number | null;
-  genKwhPerL: number | null;
   systemCost: number | null;
   currency: string;
 };
@@ -15,7 +13,7 @@ const input =
   "w-full rounded-lg bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text)] ring-1 ring-[var(--border)] outline-none transition-shadow focus:ring-amber-400/50";
 const label = "text-xs uppercase tracking-wide text-[var(--text-muted)]";
 
-/** Parámetros económicos de la planta. Todos opcionales: cada uno habilita un cálculo. */
+/** Parámetros económicos de la PLANTA: tarifa de red de referencia y costo del sistema. */
 export function PlantConfigForm({ plantId, defaults }: { plantId: string; defaults: Defaults }) {
   const [state, formAction, pending] = useActionState<ConfigState, FormData>(
     updatePlantConfigAction.bind(null, plantId),
@@ -33,18 +31,6 @@ export function PlantConfigForm({ plantId, defaults }: { plantId: string; defaul
         </p>
       </div>
       <div className="space-y-1">
-        <label htmlFor="fuelPricePerL" className={label}>Nafta ($/litro)</label>
-        <input id="fuelPricePerL" name="fuelPricePerL" type="text" inputMode="decimal"
-          defaultValue={defaults.fuelPricePerL ?? ""} placeholder="ej: 1300" className={input} />
-        <p className="text-[11px] text-[var(--text-faint)]">Para calcular el costo real del generador.</p>
-      </div>
-      <div className="space-y-1">
-        <label htmlFor="genKwhPerL" className={label}>Rendimiento del generador (kWh/litro)</label>
-        <input id="genKwhPerL" name="genKwhPerL" type="text" inputMode="decimal"
-          defaultValue={defaults.genKwhPerL ?? ""} placeholder="3" className={input} />
-        <p className="text-[11px] text-[var(--text-faint)]">Si no sabés, dejá vacío: usamos 3 kWh/L.</p>
-      </div>
-      <div className="space-y-1">
         <label htmlFor="systemCost" className={label}>Costo del sistema ($)</label>
         <input id="systemCost" name="systemCost" type="text" inputMode="decimal"
           defaultValue={defaults.systemCost ?? ""} placeholder="ej: 4500000" className={input} />
@@ -58,7 +44,7 @@ export function PlantConfigForm({ plantId, defaults }: { plantId: string; defaul
         </select>
       </div>
 
-      <div className="flex items-end gap-3">
+      <div className="flex items-end gap-3 sm:col-span-2">
         <button
           type="submit"
           disabled={pending}

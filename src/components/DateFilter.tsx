@@ -61,7 +61,7 @@ export function DateFilter({ today }: { today: string }) {
     "inline-flex min-h-8 items-center justify-center rounded-lg px-2.5 py-1.5 text-xs ring-1 ring-[var(--border)] text-[var(--text-muted)] transition-colors hover:text-[var(--text)] hover:ring-[var(--border-strong)] disabled:opacity-40 disabled:pointer-events-none";
 
   return (
-    <div className="mt-4 flex flex-wrap items-center gap-2">
+    <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
       <div className="flex items-center gap-1">
         <button type="button" className={btn} aria-label="Día anterior" onClick={() => apply(shiftDay(dia, -1), rango)}>
           <Chevron dir="left" />
@@ -71,7 +71,7 @@ export function DateFilter({ today }: { today: string }) {
           value={dia}
           max={today}
           onChange={(e) => e.target.value && apply(e.target.value, rango)}
-          className="rounded-lg bg-[var(--surface-2)] px-2 py-1 text-xs text-[var(--text)] ring-1 ring-[var(--border)] outline-none [color-scheme:inherit]"
+          className="w-full rounded-lg bg-[var(--surface-2)] px-2 py-1 text-xs text-[var(--text)] ring-1 ring-[var(--border)] outline-none [color-scheme:inherit] sm:w-auto"
         />
         <button type="button" className={btn} aria-label="Día siguiente" disabled={esHoy} onClick={() => apply(shiftDay(dia, 1), rango)}>
           <Chevron dir="right" />
@@ -83,7 +83,7 @@ export function DateFilter({ today }: { today: string }) {
         )}
       </div>
 
-      <div className="ml-auto flex items-center gap-1">
+      <div className="flex items-center gap-1 sm:ml-auto">
         {RANGOS.map((r) => (
           <button
             key={r}

@@ -33,7 +33,7 @@ export function PlantTabs({ plantId }: { plantId: string }) {
           <Link
             key={tab.href}
             href={`${tab.href}${qs}`}
-            className={`relative whitespace-nowrap px-3 py-2 text-sm transition-colors ${
+            className={`relative whitespace-nowrap px-2.5 py-2 text-[13px] transition-colors sm:px-3 sm:text-sm ${
               active ? "text-[var(--text)]" : "text-[var(--text-muted)] hover:text-[var(--text)]"
             }`}
           >

@@ -31,6 +31,23 @@ export class User {
   @Column("varchar", { name: "org_name", nullable: true })
   orgName!: string | null;
 
+  // ── Config económica del usuario (regional/propia, no de una planta puntual) ──
+  /** Precio del combustible del generador, por litro (en `currency`). */
+  @Column("double precision", { name: "fuel_price_per_l", nullable: true })
+  fuelPricePerL!: number | null;
+
+  /** Rendimiento del generador (kWh por litro). Default razonable: 3. */
+  @Column("double precision", { name: "gen_kwh_per_l", nullable: true })
+  genKwhPerL!: number | null;
+
+  /** Etiqueta del generador que tiene el usuario (ej "Nafta ~3 kVA"). Informativo. */
+  @Column("varchar", { name: "gen_label", nullable: true })
+  genLabel!: string | null;
+
+  /** Moneda de la config del usuario (para el costo de nafta). */
+  @Column("varchar", { name: "currency", default: "ARS" })
+  currency!: string;
+
   @CreateDateColumn({ name: "created_at" })
   createdAt!: Date;
 

@@ -57,12 +57,12 @@ export default async function DispositivosPage({ params }: { params: Promise<{ i
                   ? { value: fmtW(d.pvNowW), color: ENERGY_COLORS.solar }
                   : null;
             const row = (
-              <div className="flex items-center gap-3 py-3">
+              <div className="flex items-center gap-x-3 gap-y-1 py-3">
                 <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: STATUS_COLOR[d.status] }} />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <span className="truncate text-sm font-medium text-[var(--text)]">{d.model ?? "—"}</span>
-                    <span className="rounded bg-[var(--surface-2)] px-1.5 py-0.5 text-[11px] text-[var(--text-muted)] ring-1 ring-[var(--border)]">
+                    <span className="shrink-0 rounded bg-[var(--surface-2)] px-1.5 py-0.5 text-[11px] text-[var(--text-muted)] ring-1 ring-[var(--border)]">
                       {ROLE_LABEL[d.role] ?? d.role}
                     </span>
                   </div>
@@ -73,8 +73,8 @@ export default async function DispositivosPage({ params }: { params: Promise<{ i
                     {metric.value}
                   </div>
                 )}
-                <div className="w-24 shrink-0 text-right">
-                  <div className="text-xs text-[var(--text-muted)]">{STATUS_LABEL[d.status]}</div>
+                <div className="w-20 shrink-0 text-right sm:w-24">
+                  <div className="text-[11px] text-[var(--text-muted)] sm:text-xs">{STATUS_LABEL[d.status]}</div>
                   <div className="text-[11px] text-[var(--text-faint)]">{ago(d.lastTs)}</div>
                 </div>
                 {clickable && (
