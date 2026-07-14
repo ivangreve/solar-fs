@@ -130,8 +130,47 @@ async function historyPage(
 }
 
 /**
+ * Trae el histórico crudo (5-min) de UN día para un dispositivo y lo upsertea.
+ * Idempotente (PK deviceSn+ts): re-correrlo no duplica. Es el ladrillo que comparten
+ * el backfill completo (`backfillDevice`) y el catch-up de días faltantes.
+ */
+export async function backfillDay(
+  ds: DataSource,
+  api: FelicityClient,
+  dev: Device,
+  day: string,
+): Promise<number> {
+  const telRepo = ds.getRepository(Telemetry);
+  const dayHint = new Date(`${day}T00:00:00`);
+  const dateStr = `${day} 23:59:00`;
+  let inserted = 0;
+  let page = 1;
+  let totalPage = 1;
+  do {
+    await sleep(500); // pacing: no castigar la API (evita el 996)
+    const res = await historyPage(api, dev, dateStr, page);
+    const rows = res.dataList ?? res.data ?? [];
+    totalPage = res.totalPage ?? 1;
+    // Dedup por ts: el histórico puede repetir marcas de tiempo, y un upsert no
+    // admite dos filas con la misma PK en el mismo comando (Postgres error 21000).
+    const byTs = new Map<number, Telemetry>();
+    for (const r of rows) {
+      const ts = parseTs((r as Raw).dataTime, (r as Raw).dataTimeStr, dayHint);
+      if (ts) byTs.set(ts.getTime(), toCanonicalTelemetry(dev.deviceSn, ts, r as Raw) as Telemetry);
+    }
+    const canon = [...byTs.values()];
+    if (canon.length) {
+      await telRepo.upsert(canon, ["deviceSn", "ts"]);
+      inserted += canon.length;
+    }
+    page++;
+  } while (page <= totalPage);
+  return inserted;
+}
+
+/**
  * Backfill: trae el histórico crudo (5-min) de un dispositivo, día por día.
- * `deadline` (epoch ms) lo corta limpio entre páginas: como los upserts son
+ * `deadline` (epoch ms) lo corta limpio entre días: como los upserts son
  * idempotentes, una corrida posterior continúa donde quedó.
  */
 export async function backfillDevice(
@@ -141,33 +180,11 @@ export async function backfillDevice(
   fromDay: string,
   deadline?: number,
 ): Promise<number> {
-  const telRepo = ds.getRepository(Telemetry);
   let inserted = 0;
   const today = new Date();
   for (let d = new Date(fromDay); d <= today; d.setDate(d.getDate() + 1)) {
-    const dateStr = `${dayStr(d)} 23:59:00`;
-    let page = 1;
-    let totalPage = 1;
-    do {
-      if (deadline && Date.now() > deadline) return inserted;
-      await sleep(500); // pacing: no castigar la API (evita el 996)
-      const res = await historyPage(api, dev, dateStr, page);
-      const rows = res.dataList ?? res.data ?? [];
-      totalPage = res.totalPage ?? 1;
-      // Dedup por ts: el histórico puede repetir marcas de tiempo, y un upsert no
-      // admite dos filas con la misma PK en el mismo comando (Postgres error 21000).
-      const byTs = new Map<number, Telemetry>();
-      for (const r of rows) {
-        const ts = parseTs((r as Raw).dataTime, (r as Raw).dataTimeStr, d);
-        if (ts) byTs.set(ts.getTime(), toCanonicalTelemetry(dev.deviceSn, ts, r as Raw) as Telemetry);
-      }
-      const canon = [...byTs.values()];
-      if (canon.length) {
-        await telRepo.upsert(canon, ["deviceSn", "ts"]);
-        inserted += canon.length;
-      }
-      page++;
-    } while (page <= totalPage);
+    if (deadline && Date.now() > deadline) return inserted;
+    inserted += await backfillDay(ds, api, dev, dayStr(d));
   }
   return inserted;
 }

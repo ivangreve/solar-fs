@@ -5,6 +5,9 @@ import { LoginForm } from "./LoginForm";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// El catch-up histórico del login corre en background con after() (deadline 45s).
+// Le damos aire por encima del default (10s en Hobby), igual que la ruta de cron.
+export const maxDuration = 60;
 
 export default async function LoginPage() {
   // Si ya hay sesión válida, no tiene sentido el login.

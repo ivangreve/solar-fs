@@ -5,7 +5,7 @@ import { Plant } from "../db/entities/Plant";
 import { Session } from "../db/entities/Session";
 import { User } from "../db/entities/User";
 import { decryptSecret, CredencialIndescifrable } from "./secretbox";
-import { syncPlantsAndDevices, ingestSnapshots, rollupDay, backfillDevice } from "../ingest/ingest";
+import { syncPlantsAndDevices, ingestSnapshots, rollupDay, backfillDevice, backfillDay } from "../ingest/ingest";
 import { localToday, nextDay, APP_TZ } from "../time";
 import { checkAlerts, checkIngestAlerts } from "../alerts/check";
 
@@ -70,6 +70,63 @@ async function catchUpGaps(
     total += n;
     if (n > 0) {
       for (let d = fromDay; d <= today; d = nextDay(d)) await rollupDay(ds, dev.deviceSn, d);
+    }
+  }
+  return total;
+}
+
+const HISTORY_FLOOR_DAYS = 60; // sin installDate ni histórico: desde cuántos días atrás arrancar
+
+/**
+ * Rellena los días SIN datos de cada dispositivo, desde su instalación hasta hoy.
+ * A diferencia de `catchUpGaps` (tope de 3 días, ignora equipos sin histórico), esto
+ * cierra agujeros arbitrariamente viejos y arranca de cero un equipo nunca backfilleado.
+ * Acotado por `deadline` y RESUMIBLE: cada corrida cierra los días más viejos que falten,
+ * así el login lo va completando de a poco sin colgar la entrada ni reventar el 996.
+ */
+export async function catchUpHistory(
+  ds: DataSource,
+  api: FelicityClient,
+  devices: Device[],
+  deadline: number,
+): Promise<number> {
+  const today = localToday();
+  let total = 0;
+
+  for (const dev of devices) {
+    if (Date.now() > deadline) break;
+
+    // Días que YA tienen telemetría (en hora local del equipo).
+    const present: Array<{ day: string }> = await ds.query(
+      `SELECT DISTINCT to_char(ts AT TIME ZONE $2, 'YYYY-MM-DD') AS day
+       FROM telemetry WHERE device_sn = $1`,
+      [dev.deviceSn, APP_TZ],
+    );
+    const have = new Set(present.map((r) => r.day));
+
+    // Piso del rango: fecha de instalación → si falta, el dato más viejo que ya tengamos
+    // → y si el equipo no tiene NADA, los últimos HISTORY_FLOOR_DAYS (evita martillar la
+    // API de Felicity pidiendo días anteriores a que el sistema existiera).
+    const plant = await ds.getRepository(Plant).findOneBy({ id: dev.plantId });
+    const oldestPresent = have.size ? [...have].sort()[0] : null;
+    const from =
+      plant?.installDate?.slice(0, 10) ??
+      oldestPresent ??
+      localDayOf(new Date(Date.now() - HISTORY_FLOOR_DAYS * 86_400_000));
+
+    // Días faltantes en [from, today], más viejos primero → resumible entre logins.
+    const missing: string[] = [];
+    for (let d = from; d <= today; d = nextDay(d)) if (!have.has(d)) missing.push(d);
+    if (!missing.length) continue;
+
+    for (const day of missing) {
+      if (Date.now() > deadline) break;
+      const n = await backfillDay(ds, api, dev, day).catch((err) => {
+        console.error(`[catch-up-history] ${dev.deviceSn} ${day}:`, (err as Error).message);
+        return 0;
+      });
+      total += n;
+      if (n > 0) await rollupDay(ds, dev.deviceSn, day);
     }
   }
   return total;

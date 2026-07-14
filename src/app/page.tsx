@@ -3,6 +3,7 @@ import { getPlants, getPlantOverview } from "@/server/queries";
 import { requireUser } from "@/server/auth/session";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LogoutButton } from "@/components/LogoutButton";
+import { SyncButton } from "@/components/SyncButton";
 import { SettingsLink } from "@/components/SettingsLink";
 import { Reveal } from "@/components/ui/Reveal";
 import { ENERGY_COLORS, fmtW, fmtKwh } from "@/components/ui/tokens";
@@ -41,6 +42,7 @@ export default async function Home() {
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
+          <SyncButton />
           <SettingsLink />
           <ThemeToggle />
           <LogoutButton />

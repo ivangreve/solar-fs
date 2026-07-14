@@ -1,12 +1,14 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { getDataSource } from "@/server/db/data-source";
 import { User } from "@/server/db/entities/User";
 import { FelicityClient } from "@/server/felicity/client";
 import { encryptSecret } from "@/server/auth/secretbox";
 import { createSession, destroySession } from "@/server/auth/session";
 import { syncPlantsAndDevices } from "@/server/ingest/ingest";
+import { catchUpHistory, devicesForUser } from "@/server/auth/ingest-users";
 
 export type LoginState = { error?: string };
 
@@ -60,6 +62,22 @@ export async function loginAction(_prev: LoginState, formData: FormData): Promis
     } catch (err) {
       console.error("[login] sync inicial falló:", (err as Error).message);
     }
+
+    // Catch-up del histórico faltante EN SEGUNDO PLANO: no bloquea el redirect.
+    // `after()` corre tras enviar la respuesta. Idempotente y resumible → cada login
+    // cierra los días más viejos que falten hasta completar el histórico, sin colgar
+    // la entrada ni castigar el rate limit (996) de Felicity. El deadline (45s) se
+    // coordina con `maxDuration` de la ruta de login.
+    after(async () => {
+      try {
+        const dsBg = await getDataSource();
+        const devices = await devicesForUser(dsBg, userId);
+        const filled = await catchUpHistory(dsBg, client, devices, Date.now() + 45_000);
+        if (filled) console.log(`[login] catch-up histórico: ${filled} filas (${felicityUserName})`);
+      } catch (err) {
+        console.error("[login] catch-up histórico falló:", (err as Error).message);
+      }
+    });
   } catch (err) {
     const msg = (err as Error).message;
     console.error("[login] falló:", msg);
