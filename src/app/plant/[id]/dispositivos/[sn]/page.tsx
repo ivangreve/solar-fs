@@ -34,7 +34,7 @@ export default async function DeviceDetailPage({
     return (
       <SectionCard>
         <span className="text-[var(--text-muted)]">Dispositivo no encontrado. </span>
-        <Link href={`/plant/${id}/dispositivos`} className="text-amber-400 underline">
+        <Link href={`/plant/${id}/dispositivos`} className="text-[var(--accent)] underline">
           Volver
         </Link>
       </SectionCard>

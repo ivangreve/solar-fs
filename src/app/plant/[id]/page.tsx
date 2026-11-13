@@ -29,7 +29,7 @@ export default async function PlantPage({
   if (!ov) {
     return (
       <div className="text-[var(--text-muted)]">
-        Planta no encontrada. <Link href="/" className="text-amber-400 underline">Volver</Link>
+        Planta no encontrada. <Link href="/" className="text-[var(--accent)] underline">Volver</Link>
       </div>
     );
   }

@@ -63,7 +63,7 @@ export default async function BateriaPage({
                 <div className="font-mono text-[11px] text-[var(--text-faint)]">{b.model ?? b.deviceSn}</div>
                 <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
                   <dt className="text-[var(--text-faint)]">Salud (SOH)</dt>
-                  <dd className="tabular-nums text-emerald-400">{b.sohPct != null ? `${b.sohPct} %` : "—"}</dd>
+                  <dd className="tabular-nums text-[var(--c-battery)]">{b.sohPct != null ? `${b.sohPct} %` : "—"}</dd>
                   <dt className="text-[var(--text-faint)]">Voltaje</dt>
                   <dd className="tabular-nums text-[var(--text)]">{b.battVolt != null ? `${b.battVolt.toFixed(1)} V` : "—"}</dd>
                   <dt className="text-[var(--text-faint)]">Último dato</dt>

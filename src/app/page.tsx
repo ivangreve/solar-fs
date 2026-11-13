@@ -1,12 +1,10 @@
 import Link from "next/link";
 import { getPlants, getPlantOverview } from "@/server/queries";
 import { requireUser } from "@/server/auth/session";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { LogoutButton } from "@/components/LogoutButton";
-import { SyncButton } from "@/components/SyncButton";
-import { SettingsLink } from "@/components/SettingsLink";
+import { AppHeader } from "@/components/layout/AppHeader";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Reveal } from "@/components/ui/Reveal";
-import { ENERGY_COLORS, fmtW, fmtKwh } from "@/components/ui/tokens";
+import { ENERGY_COLORS, fmtW, fmtKwh, fmtPct } from "@/components/ui/tokens";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,87 +30,107 @@ export default async function Home() {
   // Overview en vivo de cada planta (pocas plantas por usuario; barato).
   const overviews = await Promise.all(plants.map((p) => getPlantOverview(p.id, user.id)));
 
+  const totalNow = overviews.reduce((s, o) => s + (o?.pvNowW ?? 0), 0);
+  const totalToday = overviews.reduce((s, o) => s + (o?.ePvKwh ?? 0), 0);
+  const firstName = user.realName?.split(" ")[0];
+
   return (
-    <main className="mx-auto max-w-5xl px-6 py-12">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="text-2xl font-semibold text-[var(--text)]">solar-fs</h1>
-          <p className="mt-1 truncate text-sm text-[var(--text-muted)]">
-            Hola{user.realName ? `, ${user.realName}` : ""} — tus plantas Felicity
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <SyncButton />
-          <SettingsLink />
-          <ThemeToggle />
-          <LogoutButton />
-        </div>
-      </div>
+    <>
+      <AppHeader sync />
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
+        <PageHeader
+          title={firstName ? `Hola, ${firstName}` : "Tus plantas"}
+          subtitle={
+            plants.length > 0
+              ? `${plants.length} ${plants.length === 1 ? "planta conectada" : "plantas conectadas"} · ${fmtW(totalNow)} generando ahora · ${fmtKwh(totalToday, 1)} hoy`
+              : "Tus plantas Felicity"
+          }
+        />
 
-      {error && (
-        <div className="mt-8 rounded-xl bg-red-500/10 p-4 text-sm text-red-400 ring-1 ring-red-500/30">
-          No se pudo leer la DB: {error}.
-        </div>
-      )}
+        {error && (
+          <div role="alert" className="mt-8 rounded-xl bg-red-500/10 p-4 text-sm text-[var(--c-danger)] ring-1 ring-red-500/30">
+            No se pudo leer la DB: {error}.
+          </div>
+        )}
 
-      {!error && plants.length === 0 && (
-        <div className="mt-8 rounded-xl p-4 text-sm text-[var(--text-muted)] ring-1 ring-[var(--border)]">
-          No hay plantas todavía. Cerrá sesión y volvé a entrar para sincronizar tu cuenta Felicity.
-        </div>
-      )}
+        {!error && plants.length === 0 && (
+          <div className="card mt-8 flex flex-col items-center gap-2 border border-dashed border-[var(--border-strong)] px-6 py-14 text-center">
+            <p className="text-base font-medium text-[var(--text)]">Todavía no hay plantas</p>
+            <p className="max-w-sm text-sm text-[var(--text-muted)]">
+              Cerrá sesión y volvé a entrar para sincronizar tu cuenta Felicity.
+            </p>
+          </div>
+        )}
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2">
-        {plants.map((p, i) => {
-          const ov = overviews[i];
-          const live = liveness(ov?.lastTs ?? null);
-          return (
-            <Reveal key={p.id} index={i}>
-              <Link
-                href={`/plant/${p.id}`}
-                className="block rounded-2xl p-5 ring-1 bg-[var(--surface)] ring-[var(--border)] transition-all duration-200 hover:-translate-y-0.5 hover:ring-amber-400/40"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="truncate text-lg font-medium text-[var(--text)]">{p.name}</div>
-                    <div className="mt-0.5 text-xs text-[var(--text-faint)]">
-                      {p.country ?? "—"}
-                      {p.ratedPowerW ? ` · ${(p.ratedPowerW / 1000).toFixed(1)} kWp` : ""}
+        <div className="mt-8 grid gap-4 sm:grid-cols-2">
+          {plants.map((p, i) => {
+            const ov = overviews[i];
+            const live = liveness(ov?.lastTs ?? null);
+            const isLive = live.label.startsWith("en vivo");
+            const soc = ov?.socAvg ?? null;
+            return (
+              <Reveal key={p.id} index={i}>
+                <Link
+                  href={`/plant/${p.id}`}
+                  className="card group relative block overflow-hidden p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_0_1px_var(--accent-ring),var(--shadow-card)] sm:p-6"
+                >
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute -right-10 -top-12 h-32 w-32 rounded-full bg-amber-400/15 opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-100"
+                  />
+                  <div className="relative flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="truncate text-lg font-semibold tracking-tight text-[var(--text)]">{p.name}</div>
+                      <div className="mt-0.5 text-xs text-[var(--text-faint)]">
+                        {p.country ?? "—"}
+                        {p.ratedPowerW ? ` · ${(p.ratedPowerW / 1000).toFixed(1)} kWp` : ""}
+                      </div>
                     </div>
+                    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[var(--surface-2)] px-2.5 py-1 text-[11px] text-[var(--text-muted)] ring-1 ring-[var(--border)]">
+                      <span
+                        className={`h-1.5 w-1.5 rounded-full ${isLive ? "animate-pulse" : ""}`}
+                        style={{ backgroundColor: live.color }}
+                      />
+                      {live.label}
+                    </span>
                   </div>
-                  <div className="flex shrink-0 items-center gap-1.5 text-xs text-[var(--text-faint)]">
-                    <span
-                      className={`h-1.5 w-1.5 rounded-full ${live.label.startsWith("en vivo") ? "animate-pulse" : ""}`}
-                      style={{ backgroundColor: live.color }}
+
+                  <div className="relative mt-5 grid grid-cols-3 gap-3">
+                    <Metric label="FV ahora" value={fmtW(ov?.pvNowW ?? 0)} color="var(--c-solar)" />
+                    <Metric label="Hoy" value={fmtKwh(ov?.ePvKwh ?? 0, 1)} color="var(--c-grid)" />
+                    <Metric label="Batería" value={soc != null ? fmtPct(soc) : "—"} color="var(--c-battery)" />
+                  </div>
+
+                  <div className="relative mt-5 h-1.5 overflow-hidden rounded-full bg-[var(--surface-2)]" aria-hidden>
+                    <div
+                      className="h-full rounded-full transition-[width] duration-700"
+                      style={{ width: `${Math.max(0, Math.min(soc ?? 0, 100))}%`, backgroundColor: ENERGY_COLORS.battery }}
                     />
-                    {live.label}
                   </div>
-                </div>
 
-                <div className="mt-4 grid grid-cols-3 gap-2">
-                  <div>
-                    <div className="text-[11px] uppercase tracking-wide text-[var(--text-faint)]">FV ahora</div>
-                    <div className="mt-0.5 text-base font-semibold tabular-nums text-amber-400">
-                      {fmtW(ov?.pvNowW ?? 0)}
-                    </div>
+                  <div className="relative mt-4 flex items-center justify-end gap-1 text-xs font-medium text-[var(--accent)] opacity-80 transition-all group-hover:gap-1.5 group-hover:opacity-100">
+                    Ver planta
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <path d="M5 12h14M13 6l6 6-6 6" />
+                    </svg>
                   </div>
-                  <div>
-                    <div className="text-[11px] uppercase tracking-wide text-[var(--text-faint)]">Hoy</div>
-                    <div className="mt-0.5 text-base font-semibold tabular-nums text-sky-400">
-                      {fmtKwh(ov?.ePvKwh ?? 0, 1)}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-[11px] uppercase tracking-wide text-[var(--text-faint)]">Batería</div>
-                    <div className="mt-0.5 text-base font-semibold tabular-nums text-emerald-400">
-                      {ov?.socAvg != null ? `${ov.socAvg} %` : "—"}
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            </Reveal>
-          );
-        })}
+                </Link>
+              </Reveal>
+            );
+          })}
+        </div>
+      </main>
+    </>
+  );
+}
+
+function Metric({ label, value, color }: { label: string; value: string; color: string }) {
+  return (
+    <div>
+      <div className="text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--text-faint)]">{label}</div>
+      <div className="mt-1 text-lg font-semibold tabular-nums tracking-tight" style={{ color }}>
+        {value}
       </div>
-    </main>
+    </div>
   );
 }

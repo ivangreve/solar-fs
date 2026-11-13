@@ -117,7 +117,7 @@ export default async function FinanzasPage({ params }: { params: Promise<{ id: s
         />
         <p className="mt-4 text-xs text-[var(--text-faint)]">
           El precio de la nafta y tu generador se cargan en{" "}
-          <Link href="/config" className="text-amber-400 hover:underline">Configuración</Link> (son por usuario).
+          <Link href="/config" className="text-[var(--accent)] hover:underline">Configuración</Link> (son por usuario).
         </p>
       </SectionCard>
     </div>

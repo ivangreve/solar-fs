@@ -95,7 +95,7 @@ function NodeShell({
   status?: "online" | "stale" | "offline";
 }) {
   const body = (
-    <div className="flex flex-col items-center gap-1 rounded-2xl p-2.5 ring-1 bg-[var(--surface)] ring-[var(--border)] transition-all duration-200 hover:ring-[var(--border-strong)] sm:p-3">
+    <div className="flex flex-col items-center gap-1 card p-2.5 transition-all duration-200 hover:-translate-y-0.5 sm:p-3">
       {children}
       <div className="flex items-center gap-1.5">
         {status && <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: STATUS_COLOR[status] }} />}

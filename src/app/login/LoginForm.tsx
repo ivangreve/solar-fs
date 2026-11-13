@@ -9,41 +9,24 @@ export function LoginForm() {
   const [state, action, pending] = useActionState(loginAction, initial);
 
   return (
-    <form action={action} className="mt-8 flex flex-col gap-4">
+    <form action={action} className="mt-6 flex flex-col gap-4">
       <label className="flex flex-col gap-1.5">
-        <span className="text-xs font-medium text-[var(--text-muted)]">Usuario de Felicity</span>
-        <input
-          name="userName"
-          type="text"
-          autoComplete="username"
-          autoFocus
-          required
-          className="rounded-xl bg-[var(--surface-2)] px-4 py-2.5 text-[var(--text)] ring-1 ring-[var(--border)] outline-none transition focus:ring-2 focus:ring-amber-400/50"
-        />
+        <span className="label">Usuario de Felicity</span>
+        <input name="userName" type="text" autoComplete="username" autoFocus required className="field !py-2.5" />
       </label>
 
       <label className="flex flex-col gap-1.5">
-        <span className="text-xs font-medium text-[var(--text-muted)]">Contraseña</span>
-        <input
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          required
-          className="rounded-xl bg-[var(--surface-2)] px-4 py-2.5 text-[var(--text)] ring-1 ring-[var(--border)] outline-none transition focus:ring-2 focus:ring-amber-400/50"
-        />
+        <span className="label">Contraseña</span>
+        <input name="password" type="password" autoComplete="current-password" required className="field !py-2.5" />
       </label>
 
       {state.error && (
-        <p className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400 ring-1 ring-red-500/30">
+        <p role="alert" className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-[var(--c-danger)] ring-1 ring-red-500/30">
           {state.error}
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="mt-2 rounded-xl bg-amber-400 px-4 py-2.5 font-semibold text-neutral-900 transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-60"
-      >
+      <button type="submit" disabled={pending} className="btn btn-primary mt-1 !min-h-11 !text-sm">
         {pending ? "Conectando con Felicity…" : "Entrar"}
       </button>
     </form>

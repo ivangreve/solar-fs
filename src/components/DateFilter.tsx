@@ -57,12 +57,11 @@ export function DateFilter({ today }: { today: string }) {
   };
 
   const esHoy = dia === today;
-  const btn =
-    "inline-flex min-h-8 items-center justify-center rounded-lg px-2.5 py-1.5 text-xs ring-1 ring-[var(--border)] text-[var(--text-muted)] transition-colors hover:text-[var(--text)] hover:ring-[var(--border-strong)] disabled:opacity-40 disabled:pointer-events-none";
+  const btn = "btn btn-icon !min-h-8 !w-8 !rounded-lg";
 
   return (
     <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1.5">
         <button type="button" className={btn} aria-label="Día anterior" onClick={() => apply(shiftDay(dia, -1), rango)}>
           <Chevron dir="left" />
         </button>
@@ -71,29 +70,27 @@ export function DateFilter({ today }: { today: string }) {
           value={dia}
           max={today}
           onChange={(e) => e.target.value && apply(e.target.value, rango)}
-          className="w-full rounded-lg bg-[var(--surface-2)] px-2 py-1 text-xs text-[var(--text)] ring-1 ring-[var(--border)] outline-none [color-scheme:inherit] sm:w-auto"
+          className="field !w-auto !rounded-lg !px-2.5 !py-1 text-xs [color-scheme:inherit]"
+          aria-label="Día"
         />
         <button type="button" className={btn} aria-label="Día siguiente" disabled={esHoy} onClick={() => apply(shiftDay(dia, 1), rango)}>
           <Chevron dir="right" />
         </button>
         {!esHoy && (
-          <button type="button" className={btn} onClick={() => apply(today, rango)}>
+          <button type="button" className="btn !min-h-8 !rounded-lg !px-2.5 text-xs" onClick={() => apply(today, rango)}>
             Hoy
           </button>
         )}
       </div>
 
-      <div className="flex items-center gap-1 sm:ml-auto">
+      <div className="flex items-center gap-1.5 sm:ml-auto" role="group" aria-label="Rango de días">
         {RANGOS.map((r) => (
           <button
             key={r}
             type="button"
+            data-active={String(r) === rango}
             onClick={() => apply(dia, String(r))}
-            className={`rounded-lg px-2.5 py-1 text-xs ring-1 transition-colors ${
-              String(r) === rango
-                ? "bg-amber-400/15 text-amber-400 ring-amber-400/40"
-                : "text-[var(--text-muted)] ring-[var(--border)] hover:text-[var(--text)]"
-            }`}
+            className="chip"
           >
             {r} días
           </button>

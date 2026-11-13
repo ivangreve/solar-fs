@@ -1,12 +1,10 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPlants } from "@/server/queries";
 import { requireUser } from "@/server/auth/session";
 import { PlantTabs } from "@/components/PlantTabs";
 import { PageShell } from "@/components/ui/PageShell";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { LogoutButton } from "@/components/LogoutButton";
-import { SettingsLink } from "@/components/SettingsLink";
+import { AppHeader } from "@/components/layout/AppHeader";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { DateFilter } from "@/components/DateFilter";
 import { localToday } from "@/server/time";
 
@@ -28,23 +26,24 @@ export default async function PlantLayout({
   if (!plant) notFound();
 
   return (
-    <PageShell>
-      <header className="mb-4 flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <Link href="/" className="text-xs text-[var(--text-faint)] transition-colors hover:text-[var(--text-muted)]">
-            ← Plantas
-          </Link>
-          <h1 className="truncate text-lg font-semibold text-[var(--text)] sm:text-2xl">{plant.name}</h1>
+    <>
+      <AppHeader />
+      <PageShell>
+        <PageHeader
+          title={plant.name}
+          back={{ href: "/", label: "Plantas" }}
+          subtitle={
+            [plant.country, plant.ratedPowerW ? `${(plant.ratedPowerW / 1000).toFixed(1)} kWp` : null]
+              .filter(Boolean)
+              .join(" · ") || undefined
+          }
+        />
+        <div className="mt-5">
+          <PlantTabs plantId={id} />
         </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <SettingsLink />
-          <ThemeToggle />
-          <LogoutButton />
-        </div>
-      </header>
-      <PlantTabs plantId={id} />
-      <DateFilter today={localToday()} />
-      <div className="mt-6">{children}</div>
-    </PageShell>
+        <DateFilter today={localToday()} />
+        <div className="mt-6">{children}</div>
+      </PageShell>
+    </>
   );
 }

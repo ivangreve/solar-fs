@@ -9,9 +9,8 @@ type Defaults = {
   currency: string;
 };
 
-const input =
-  "w-full rounded-lg bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text)] ring-1 ring-[var(--border)] outline-none transition-shadow focus:ring-amber-400/50";
-const label = "text-xs uppercase tracking-wide text-[var(--text-muted)]";
+const input = "field";
+const label = "label";
 
 /** Parámetros económicos de la PLANTA: tarifa de red de referencia y costo del sistema. */
 export function PlantConfigForm({ plantId, defaults }: { plantId: string; defaults: Defaults }) {
@@ -48,12 +47,12 @@ export function PlantConfigForm({ plantId, defaults }: { plantId: string; defaul
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-neutral-900 transition-opacity hover:opacity-90 disabled:opacity-50"
+          className="btn btn-primary !px-5"
         >
           {pending ? "Guardando…" : "Guardar"}
         </button>
-        {state.ok && <span className="text-sm text-emerald-400">Guardado ✓</span>}
-        {state.error && <span className="text-sm text-red-400">{state.error}</span>}
+        {state.ok && <span className="text-sm text-[var(--c-battery)]">Guardado ✓</span>}
+        {state.error && <span className="text-sm text-[var(--c-danger)]">{state.error}</span>}
       </div>
     </form>
   );

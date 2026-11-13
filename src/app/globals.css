@@ -1,26 +1,64 @@
 @import "tailwindcss";
 
-/* Tokens de superficie/texto. Default = oscuro (sin clase). `.light` lo invierte. */
+/* ───────────────────────── Tokens ─────────────────────────
+   Default = oscuro (sin clase). `.light` lo invierte.
+   Los colores de energía tienen variante por tema para mantener contraste AA. */
 :root {
-  --bg: #0a0a0a;
-  --surface: rgba(23, 23, 23, 0.7);
-  --surface-2: #171717;
-  --border: rgba(255, 255, 255, 0.1);
-  --border-strong: rgba(255, 255, 255, 0.22);
-  --text: #f5f5f5;
-  --text-muted: #a3a3a3;
-  --text-faint: #737373;
+  --bg: #09090b;
+  --bg-glow: rgba(251, 191, 36, 0.07);
+  --surface: rgba(24, 24, 27, 0.72);
+  --surface-solid: #18181b;
+  --surface-2: #1f1f23;
+  --surface-hover: #26262b;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.2);
+  --text: #fafafa;
+  --text-muted: #a1a1aa;
+  --text-faint: #71717a;
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+
+  --accent: #fbbf24;
+  --accent-strong: #f59e0b;
+  --accent-soft: rgba(251, 191, 36, 0.14);
+  --accent-ring: rgba(251, 191, 36, 0.45);
+  --on-accent: #1c1917;
+
+  --c-solar: #fbbf24;
+  --c-battery: #34d399;
+  --c-grid: #38bdf8;
+  --c-load: #a78bfa;
+  --c-generator: #fb923c;
+  --c-money: #f472b6;
+  --c-danger: #f87171;
 }
 
 .light {
-  --bg: #f6f6f7;
+  --bg: #f5f5f4;
+  --bg-glow: rgba(245, 158, 11, 0.1);
   --surface: #ffffff;
-  --surface-2: #f1f1f3;
+  --surface-solid: #ffffff;
+  --surface-2: #f4f4f5;
+  --surface-hover: #ececee;
   --border: rgba(9, 9, 11, 0.08);
-  --border-strong: rgba(9, 9, 11, 0.16);
+  --border-strong: rgba(9, 9, 11, 0.18);
   --text: #18181b;
   --text-muted: #52525b;
-  --text-faint: #9ca3af;
+  --text-faint: #8b8b94;
+  --shadow-card: 0 1px 2px rgba(9, 9, 11, 0.04), 0 8px 24px -14px rgba(9, 9, 11, 0.12);
+
+  --accent: #d97706;
+  --accent-strong: #b45309;
+  --accent-soft: rgba(217, 119, 6, 0.1);
+  --accent-ring: rgba(217, 119, 6, 0.45);
+  --on-accent: #ffffff;
+
+  --c-solar: #b45309;
+  --c-battery: #047857;
+  --c-grid: #0369a1;
+  --c-load: #6d28d9;
+  --c-generator: #c2410c;
+  --c-money: #be185d;
+  --c-danger: #dc2626;
 }
 
 @theme inline {
@@ -28,10 +66,130 @@
   --font-mono: var(--font-geist-mono);
 }
 
+html {
+  color-scheme: dark;
+}
+html.light {
+  color-scheme: light;
+}
+
 body {
   background: var(--bg);
   color: var(--text);
   transition: background-color 0.3s ease, color 0.3s ease;
+  /* Resplandor ambiental cálido arriba: da identidad "solar" sin ensuciar el contenido. */
+  background-image: radial-gradient(60rem 24rem at 50% -8rem, var(--bg-glow), transparent 70%);
+  background-repeat: no-repeat;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-ring);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* ───────────────────────── Primitivas ───────────────────────── */
+
+.card {
+  background: var(--surface);
+  border-radius: 1rem;
+  box-shadow: 0 0 0 1px var(--border), var(--shadow-card);
+  backdrop-filter: blur(8px);
+}
+
+.btn {
+  display: inline-flex;
+  min-height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border-radius: 0.65rem;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  box-shadow: 0 0 0 1px var(--border);
+  background: transparent;
+  cursor: pointer;
+  transition: color 0.15s, background-color 0.15s, box-shadow 0.15s, opacity 0.15s;
+}
+.btn:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--surface-2);
+  box-shadow: 0 0 0 1px var(--border-strong);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-icon {
+  width: 2.25rem;
+  padding: 0;
+}
+.btn-primary {
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) inset, 0 6px 16px -8px var(--accent);
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-strong);
+  color: var(--on-accent);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) inset, 0 8px 20px -8px var(--accent);
+}
+
+.field {
+  width: 100%;
+  border-radius: 0.65rem;
+  background: var(--surface-2);
+  padding: 0.6rem 0.85rem;
+  font-size: 0.875rem;
+  color: var(--text);
+  box-shadow: 0 0 0 1px var(--border);
+  outline: none;
+  transition: box-shadow 0.15s;
+}
+.field::placeholder {
+  color: var(--text-faint);
+}
+.field:hover {
+  box-shadow: 0 0 0 1px var(--border-strong);
+}
+.field:focus {
+  box-shadow: 0 0 0 2px var(--accent-ring);
+}
+
+.label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Chip / segmented option */
+.chip {
+  border-radius: 0.6rem;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  box-shadow: 0 0 0 1px var(--border);
+  transition: color 0.15s, background-color 0.15s, box-shadow 0.15s;
+  cursor: pointer;
+}
+.chip:hover {
+  color: var(--text);
+  box-shadow: 0 0 0 1px var(--border-strong);
+}
+.chip[data-active="true"] {
+  background: var(--accent-soft);
+  color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent-ring);
 }
 
 /* Oculta la scrollbar manteniendo el scroll (tabs horizontales en mobile). */
@@ -42,12 +200,19 @@ body {
   display: none;
 }
 
-/* El autofill de Chrome pinta los inputs con fondo claro y rompe el tema.
-   El inset shadow tapa ese fondo con el token de superficie (los inputs usan
-   bg-[var(--surface-2)]) y la transición eterna evita el flash amarillo. */
+/* El autofill de Chrome pinta los inputs con fondo claro y rompe el tema. */
 input:-webkit-autofill {
   -webkit-box-shadow: 0 0 0 1000px var(--surface-2) inset;
   -webkit-text-fill-color: var(--text);
   caret-color: var(--text);
   transition: background-color 9999s ease-in-out 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
