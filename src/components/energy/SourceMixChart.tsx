@@ -3,7 +3,7 @@
 import ReactECharts from "echarts-for-react";
 import type { PlantSeries } from "@/server/queries";
 import { ENERGY_COLORS } from "@/components/ui/tokens";
-import { useChartTheme, baseTooltip } from "@/components/charts/chartTheme";
+import { useChartTheme, tooltipBox, legendBase, gridBase, xCategory, yValue } from "@/components/charts/chartTheme";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 /**
@@ -43,34 +43,15 @@ export function SourceMixChart({ data }: { data: PlantSeries["intraday"] }) {
 
   const option = {
     backgroundColor: "transparent",
-    grid: { left: 52, right: 24, top: 36, bottom: 28 },
+    grid: gridBase,
     tooltip: {
-      ...baseTooltip(th),
+      ...tooltipBox(th),
       trigger: "axis",
       valueFormatter: (v: number) => (v == null ? "—" : `${Math.round(v)} W`),
     },
-    legend: {
-      textStyle: { color: th.legendText },
-      top: 4,
-      itemWidth: 10,
-      itemHeight: 10,
-      icon: "roundRect",
-    },
-    xAxis: {
-      type: "category",
-      data: t,
-      boundaryGap: false,
-      axisLabel: { color: th.axisLabel, interval: Math.ceil(t.length / 8) },
-      axisLine: { lineStyle: { color: th.axisLine } },
-      axisTick: { show: false },
-    },
-    yAxis: {
-      type: "value",
-      name: "W",
-      nameTextStyle: { color: th.axisName, align: "right" },
-      axisLabel: { color: th.axisLabel },
-      splitLine: { lineStyle: { color: th.splitLine } },
-    },
+    legend: legendBase(th),
+    xAxis: xCategory(th, t, false),
+    yAxis: yValue(th, { name: "W" }),
     series: [
       {
         name: "FV directo",

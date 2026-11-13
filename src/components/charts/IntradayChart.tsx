@@ -3,18 +3,8 @@
 import ReactECharts from "echarts-for-react";
 import type { PlantSeries } from "@/server/queries";
 import { ENERGY_COLORS } from "@/components/ui/tokens";
-import { useChartTheme, baseTooltip } from "@/components/charts/chartTheme";
+import { useChartTheme, tooltipBox, legendBase, gridBase, xCategory, yValue, areaGradient } from "@/components/charts/chartTheme";
 import { EmptyState } from "@/components/ui/EmptyState";
-
-/** Relleno de área con gradiente vertical (color sólido arriba → transparente abajo). */
-const area = (hex: string) => ({
-  type: "linear" as const,
-  x: 0, y: 0, x2: 0, y2: 1,
-  colorStops: [
-    { offset: 0, color: hex + "59" },
-    { offset: 1, color: hex + "05" },
-  ],
-});
 
 /** "De dónde salió cada watt" — FV, generador, consumo y SOC a lo largo del día (5-min). */
 export function IntradayChart({ data }: { data: PlantSeries["intraday"] }) {
@@ -33,13 +23,13 @@ export function IntradayChart({ data }: { data: PlantSeries["intraday"] }) {
   const series = [
     {
       name: "FV", type: "line", smooth: true, showSymbol: false, lineStyle: { width: 2 },
-      itemStyle: { color: ENERGY_COLORS.solar }, areaStyle: { color: area(ENERGY_COLORS.solar) },
+      itemStyle: { color: ENERGY_COLORS.solar }, areaStyle: { color: areaGradient(ENERGY_COLORS.solar) },
       data: data.map((d) => d.pv),
     },
     ...(hasGen
       ? [{
           name: "Generador", type: "line", smooth: true, showSymbol: false, lineStyle: { width: 2 },
-          itemStyle: { color: ENERGY_COLORS.generator }, areaStyle: { color: area(ENERGY_COLORS.generator) },
+          itemStyle: { color: ENERGY_COLORS.generator }, areaStyle: { color: areaGradient(ENERGY_COLORS.generator) },
           data: data.map((d) => d.gen),
         }]
       : []),
@@ -56,25 +46,11 @@ export function IntradayChart({ data }: { data: PlantSeries["intraday"] }) {
 
   const option = {
     backgroundColor: "transparent",
-    grid: { left: 14, right: 14, top: 36, bottom: 8, containLabel: true },
-    tooltip: {
-      ...baseTooltip(t),
-      trigger: "axis",
-      axisPointer: { type: "line", lineStyle: { color: t.crosshair } },
-    },
-    legend: { textStyle: { color: t.legendText }, top: 2, icon: "roundRect", itemWidth: 12, itemHeight: 6 },
-    xAxis: {
-      type: "category", boundaryGap: false, data: data.map((d) => d.t),
-      axisLabel: { color: t.axisLabel, fontSize: 11 },
-      axisLine: { lineStyle: { color: t.axisLine } },
-      axisTick: { show: false },
-    },
-    yAxis: [
-      { type: "value", name: "W", nameTextStyle: { color: t.axisName }, axisLabel: { color: t.axisLabel, fontSize: 11 },
-        splitLine: { lineStyle: { color: t.splitLine } } },
-      { type: "value", name: "SOC %", min: 0, max: 100, nameTextStyle: { color: t.axisName },
-        axisLabel: { color: t.axisLabel, fontSize: 11 }, splitLine: { show: false } },
-    ],
+    grid: gridBase,
+    tooltip: { ...tooltipBox(t), trigger: "axis", axisPointer: { type: "line", lineStyle: { color: t.crosshair } } },
+    legend: legendBase(t),
+    xAxis: xCategory(t, data.map((d) => d.t), false),
+    yAxis: [yValue(t, { name: "W" }), yValue(t, { name: "SOC %", min: 0, max: 100, split: false })],
     series,
   };
   return <ReactECharts option={option} style={{ height: 320 }} notMerge />;

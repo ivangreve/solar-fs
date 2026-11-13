@@ -64,9 +64,10 @@ export default async function FinanzasPage({ params }: { params: Promise<{ id: s
   return (
     <div className="space-y-6">
       {!configurado && (
-        <SectionCard>
-          <div className="py-2 text-center">
-            <h3 className="text-xl font-semibold text-[var(--text)]">¿Cuánta plata te ahorra el sol?</h3>
+        <SectionCard className="relative overflow-hidden">
+          <div aria-hidden className="pointer-events-none absolute left-1/2 -top-20 h-48 w-96 -translate-x-1/2 rounded-full bg-pink-400/15 blur-3xl" />
+          <div className="relative py-4 text-center">
+            <h3 className="text-2xl font-semibold tracking-tight text-[var(--text)]">¿Cuánta plata te ahorra el sol?</h3>
             <p className="mx-auto mt-2 max-w-md text-sm text-[var(--text-muted)]">
               Cargá abajo tu tarifa de referencia y el precio de la nafta: con eso convertimos tus{" "}
               {fmt(totals.ePv)} kWh históricos en plata.
@@ -100,13 +101,24 @@ export default async function FinanzasPage({ params }: { params: Promise<{ id: s
             )}
           </section>
 
+          {payback && (
+            <SectionCard title="Recupero de la inversión" description={`${payback.pct.toFixed(1)} % del costo del sistema`}>
+              <div className="h-2.5 overflow-hidden rounded-full bg-[var(--surface-2)]" role="progressbar" aria-valuenow={Math.round(payback.pct)} aria-valuemin={0} aria-valuemax={100}>
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-amber-300 to-orange-500"
+                  style={{ width: `${payback.pct}%` }}
+                />
+              </div>
+            </SectionCard>
+          )}
+
           <SectionCard title="Ahorro por mes">
             <FinanceMonthlyBars data={monthlyMoney} currency={cur} />
           </SectionCard>
         </>
       )}
 
-      <SectionCard title="Parámetros de esta planta">
+      <SectionCard title="Parámetros de esta planta" description="Tarifa de red y costo del sistema">
         <PlantConfigForm
           plantId={id}
           defaults={{

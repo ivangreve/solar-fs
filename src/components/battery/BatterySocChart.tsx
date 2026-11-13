@@ -2,7 +2,7 @@
 
 import ReactECharts from "echarts-for-react";
 import { ENERGY_COLORS } from "@/components/ui/tokens";
-import { useChartTheme, baseTooltip } from "@/components/charts/chartTheme";
+import { useChartTheme, tooltipBox, legendBase, gridBase, xCategory, yValue } from "@/components/charts/chartTheme";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 export type BatterySeries = { label: string; points: Array<{ t: string; soc: number | null }> };
@@ -26,11 +26,11 @@ export function BatterySocChart({ series }: { series: BatterySeries[] }) {
 
   const option = {
     backgroundColor: "transparent",
-    grid: { left: 44, right: 20, top: 28, bottom: 28 },
-    tooltip: { ...baseTooltip(t), trigger: "axis" },
-    legend: { top: 0, textStyle: { color: t.legendText } },
-    xAxis: { type: "category", data: axis, axisLabel: { color: t.axisLabel }, axisLine: { lineStyle: { color: t.axisLine } } },
-    yAxis: { type: "value", min: 0, max: 100, axisLabel: { color: t.axisLabel, formatter: "{value}%" }, splitLine: { lineStyle: { color: t.splitLine } } },
+    grid: gridBase,
+    tooltip: { ...tooltipBox(t), trigger: "axis" },
+    legend: legendBase(t),
+    xAxis: xCategory(t, axis, false),
+    yAxis: yValue(t, { min: 0, max: 100, formatter: "{value}%" }),
     series: withData.map((s, i) => ({
       name: s.label,
       type: "line",

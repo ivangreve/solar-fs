@@ -33,7 +33,7 @@ export default async function DispositivosPage({ params }: { params: Promise<{ i
 
   return (
     <div className="space-y-6">
-      <SectionCard title="Esquema del sistema">
+      <SectionCard title="Esquema del sistema" description="Flujo de energía en vivo">
         <SystemTopology
           plantId={id}
           devices={devices}
@@ -45,7 +45,7 @@ export default async function DispositivosPage({ params }: { params: Promise<{ i
         </p>
       </SectionCard>
 
-      <SectionCard title="Dispositivos">
+      <SectionCard title="Dispositivos" description={`${devices.length} equipos en la planta`}>
         <div className="divide-y divide-[var(--border)]">
           {devices.map((d) => {
             const clickable = d.role !== "meter";
@@ -73,9 +73,14 @@ export default async function DispositivosPage({ params }: { params: Promise<{ i
                     {metric.value}
                   </div>
                 )}
-                <div className="w-20 shrink-0 text-right sm:w-24">
-                  <div className="text-[11px] text-[var(--text-muted)] sm:text-xs">{STATUS_LABEL[d.status]}</div>
-                  <div className="text-[11px] text-[var(--text-faint)]">{ago(d.lastTs)}</div>
+                <div className="w-20 shrink-0 text-right sm:w-28">
+                  <span
+                    className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium"
+                    style={{ color: STATUS_COLOR[d.status], backgroundColor: `color-mix(in srgb, ${STATUS_COLOR[d.status]} 14%, transparent)` }}
+                  >
+                    {STATUS_LABEL[d.status]}
+                  </span>
+                  <div className="mt-0.5 text-[11px] text-[var(--text-faint)]">{ago(d.lastTs)}</div>
                 </div>
                 {clickable && (
                   <svg className="shrink-0 text-[var(--text-faint)]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -88,12 +93,12 @@ export default async function DispositivosPage({ params }: { params: Promise<{ i
               <Link
                 key={d.deviceSn}
                 href={`/plant/${id}/dispositivos/${d.deviceSn}`}
-                className="block -mx-2 rounded-lg px-2 transition-colors hover:bg-[var(--surface-2)]"
+                className="block -mx-3 rounded-xl px-3 transition-colors hover:bg-[var(--surface-2)]"
               >
                 {row}
               </Link>
             ) : (
-              <div key={d.deviceSn} className="-mx-2 px-2 opacity-70">
+              <div key={d.deviceSn} className="-mx-3 px-3 opacity-70">
                 {row}
               </div>
             );

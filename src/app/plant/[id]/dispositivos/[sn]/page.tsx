@@ -53,8 +53,9 @@ export default async function DeviceDetailPage({
   return (
     <div className="space-y-6">
       {/* Hero: ilustración + identidad + frescura */}
-      <SectionCard>
-        <div className="flex items-center gap-5">
+      <SectionCard className="relative overflow-hidden">
+        <div aria-hidden className="pointer-events-none absolute -right-12 -top-16 h-48 w-48 rounded-full bg-amber-400/10 blur-3xl" />
+        <div className="relative flex items-center gap-5">
           <div className="shrink-0">
             {device.role === "battery" ? (
               <BatteryUnit soc={latest.socPct} size={96} />
@@ -75,14 +76,14 @@ export default async function DeviceDetailPage({
             >
               ← Dispositivos
             </Link>
-            <h2 className="mt-0.5 truncate text-xl font-semibold text-[var(--text)]">
+            <h2 className="mt-1 truncate text-xl font-semibold tracking-tight text-[var(--text)] sm:text-2xl">
               {device.model ?? "Dispositivo"}{" "}
               <span className="text-sm font-normal text-[var(--text-muted)]">
                 · {ROLE_LABEL[device.role] ?? device.role}
               </span>
             </h2>
             <div className="mt-0.5 font-mono text-[11px] text-[var(--text-faint)]">{device.deviceSn}</div>
-            <div className="mt-2 flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
+            <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-[var(--surface-2)] px-2.5 py-1 text-xs text-[var(--text-muted)] ring-1 ring-[var(--border)]">
               <span
                 className={`h-1.5 w-1.5 rounded-full ${live.label.startsWith("en vivo") ? "animate-pulse" : ""}`}
                 style={{ backgroundColor: live.color }}
@@ -104,7 +105,7 @@ export default async function DeviceDetailPage({
           </section>
 
           {strings.length > 0 && (
-            <SectionCard title="Strings fotovoltaicos · ahora">
+            <SectionCard title="Strings fotovoltaicos" description="Potencia ahora">
               <div className={`grid grid-cols-2 gap-3 ${strings.length > 2 ? "sm:grid-cols-4" : ""}`}>
                 {strings.map((s) => {
                   const share = stringsTotal > 0 ? (s.w / stringsTotal) * 100 : 0;
@@ -133,7 +134,7 @@ export default async function DeviceDetailPage({
             </SectionCard>
           )}
 
-          <SectionCard title="Generación y consumo · hoy">
+          <SectionCard title="Generación y consumo" description="Hoy">
             <DeviceIntradayChart data={series.intraday} mode="power" />
           </SectionCard>
         </>
@@ -152,7 +153,7 @@ export default async function DeviceDetailPage({
               sub="profundidad de descarga" />
             <StatTile label="SOC máximo hoy" value={today.maxSoc != null ? `${Math.round(today.maxSoc)}` : "—"} unit="%" accent="battery" index={3} />
           </section>
-          <SectionCard title="Estado de carga (SOC) · hoy">
+          <SectionCard title="Estado de carga (SOC)" description="Hoy">
             <DeviceIntradayChart data={series.intraday} mode="soc" />
           </SectionCard>
         </>
