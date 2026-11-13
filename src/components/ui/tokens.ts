@@ -3,6 +3,7 @@
  * Colores por canal de energía + helpers de formato (consistentes en toda la app).
  */
 
+/** Colores crudos (para charts/SVG, que no leen CSS vars). Para texto/UI usar ACCENT_TEXT / ACCENT_VAR. */
 export const ENERGY_COLORS = {
   solar: "#fbbf24",
   battery: "#34d399",
@@ -16,12 +17,22 @@ export type EnergyAccent = keyof typeof ENERGY_COLORS;
 
 /** Clase Tailwind de texto por acento (para tiles/labels). */
 export const ACCENT_TEXT: Record<EnergyAccent, string> = {
-  solar: "text-amber-400",
-  battery: "text-emerald-400",
-  grid: "text-sky-400",
-  load: "text-violet-400",
-  generator: "text-orange-400",
-  money: "text-pink-400",
+  solar: "text-[var(--c-solar)]",
+  battery: "text-[var(--c-battery)]",
+  grid: "text-[var(--c-grid)]",
+  load: "text-[var(--c-load)]",
+  generator: "text-[var(--c-generator)]",
+  money: "text-[var(--c-money)]",
+};
+
+/** Variable CSS por acento (cambia con el tema → contraste correcto en claro y oscuro). */
+export const ACCENT_VAR: Record<EnergyAccent, string> = {
+  solar: "var(--c-solar)",
+  battery: "var(--c-battery)",
+  grid: "var(--c-grid)",
+  load: "var(--c-load)",
+  generator: "var(--c-generator)",
+  money: "var(--c-money)",
 };
 
 const nf = (d: number) =>

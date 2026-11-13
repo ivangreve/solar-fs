@@ -2,7 +2,7 @@
 
 import ReactECharts from "echarts-for-react";
 import { ENERGY_COLORS } from "@/components/ui/tokens";
-import { useChartTheme, baseTooltip } from "@/components/charts/chartTheme";
+import { useChartTheme, tooltipBox, gridBase, xCategory, yValue } from "@/components/charts/chartTheme";
 
 type Row = { day: string; kwh: number };
 
@@ -11,15 +11,10 @@ export function GenDailyBars({ data }: { data: Row[] }) {
   const t = useChartTheme();
   const option = {
     backgroundColor: "transparent",
-    grid: { left: 44, right: 20, top: 20, bottom: 28 },
-    tooltip: { ...baseTooltip(t), trigger: "axis" },
-    xAxis: {
-      type: "category",
-      data: data.map((d) => d.day.slice(5)),
-      axisLabel: { color: t.axisLabel },
-      axisLine: { lineStyle: { color: t.axisLine } },
-    },
-    yAxis: { type: "value", name: "kWh", nameTextStyle: { color: t.axisName }, axisLabel: { color: t.axisLabel }, splitLine: { lineStyle: { color: t.splitLine } } },
+    grid: gridBase,
+    tooltip: { ...tooltipBox(t), trigger: "axis" },
+    xAxis: xCategory(t, data.map((d) => d.day.slice(5))),
+    yAxis: yValue(t, { name: "kWh" }),
     series: [
       {
         name: "Generador",

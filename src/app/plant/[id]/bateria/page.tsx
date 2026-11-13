@@ -56,16 +56,16 @@ export default async function BateriaPage({
       <section className="grid gap-4 sm:grid-cols-2">
         {fleet.map((b, i) => (
           <SectionCard key={b.deviceSn}>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-5">
               <SocArc soc={b.socPct} />
               <div className="min-w-0">
-                <div className="text-sm text-[var(--text)]">Batería {i + 1}</div>
+                <div className="text-sm font-semibold text-[var(--text)]">Batería {i + 1}</div>
                 <div className="font-mono text-[11px] text-[var(--text-faint)]">{b.model ?? b.deviceSn}</div>
                 <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
                   <dt className="text-[var(--text-faint)]">Salud (SOH)</dt>
-                  <dd className="tabular-nums text-emerald-400">{b.sohPct != null ? `${b.sohPct} %` : "—"}</dd>
+                  <dd className="tabular-nums text-[var(--c-battery)]">{b.sohPct != null ? `${b.sohPct} %` : "—"}</dd>
                   <dt className="text-[var(--text-faint)]">Voltaje</dt>
-                  <dd className="tabular-nums text-[var(--text)]">{b.battVolt != null ? `${b.battVolt.toFixed(1)} V` : "—"}</dd>
+                  <dd className="tabular-nums font-medium text-[var(--text)]">{b.battVolt != null ? `${b.battVolt.toFixed(1)} V` : "—"}</dd>
                   <dt className="text-[var(--text-faint)]">Último dato</dt>
                   <dd className="text-[var(--text-muted)]">{ago(b.lastTs)}</dd>
                 </dl>
@@ -75,11 +75,11 @@ export default async function BateriaPage({
         ))}
       </section>
 
-      <SectionCard title={`Estado de carga · ${etiquetaDia}`}>
+      <SectionCard title="Estado de carga" description={etiquetaDia}>
         <BatterySocChart series={socSeries} />
       </SectionCard>
 
-      <SectionCard title={`Carga y descarga · últimos ${rango} días`}>
+      <SectionCard title="Carga y descarga" description={`Últimos ${rango} días`}>
         <ChargeDischargeBars data={daily} />
         <p className="mt-3 text-xs text-[var(--text-faint)]">
           El detalle por celda y el conteo de ciclos no están disponibles en este modelo de batería.

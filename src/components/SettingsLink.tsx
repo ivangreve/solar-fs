@@ -6,7 +6,7 @@ export function SettingsLink() {
     <Link
       href="/config"
       aria-label="Configuración"
-      className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-[var(--text-muted)] ring-1 ring-[var(--border)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
+      className="btn btn-icon"
     >
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
         <circle cx="12" cy="12" r="3" />

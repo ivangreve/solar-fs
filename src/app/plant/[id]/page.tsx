@@ -29,7 +29,7 @@ export default async function PlantPage({
   if (!ov) {
     return (
       <div className="text-[var(--text-muted)]">
-        Planta no encontrada. <Link href="/" className="text-amber-400 underline">Volver</Link>
+        Planta no encontrada. <Link href="/" className="text-[var(--accent)] underline">Volver</Link>
       </div>
     );
   }
@@ -47,15 +47,17 @@ export default async function PlantPage({
   return (
     <div className="space-y-6">
       {esHoy && (
-        <div className="flex items-center justify-end gap-2 text-xs text-[var(--text-faint)]">
-          {stale != null && stale < 15 && (
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-          )}
-          {stale == null
-            ? "sin datos"
-            : stale < 15
-              ? `en vivo · hace ${Math.round(stale)} min`
-              : `último dato hace ${Math.round(stale)} min`}
+        <div className="flex justify-end">
+          <span className="inline-flex items-center gap-2 rounded-full bg-[var(--surface-2)] px-3 py-1 text-xs text-[var(--text-muted)] ring-1 ring-[var(--border)]">
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${stale != null && stale < 15 ? "animate-pulse bg-[var(--c-battery)]" : "bg-[var(--text-faint)]"}`}
+            />
+            {stale == null
+              ? "sin datos"
+              : stale < 15
+                ? `en vivo · hace ${Math.round(stale)} min`
+                : `último dato hace ${Math.round(stale)} min`}
+          </span>
         </div>
       )}
 
@@ -80,11 +82,11 @@ export default async function PlantPage({
 
       {forecast && <ForecastCard forecast={forecast} />}
 
-      <SectionCard title={`De dónde salió cada watt · ${etiquetaDia}`}>
+      <SectionCard title="De dónde salió cada watt" description={etiquetaDia}>
         <IntradayChart data={series.intraday} />
       </SectionCard>
 
-      <SectionCard title={`Generación diaria · últimos ${rango} días`}>
+      <SectionCard title="Generación diaria" description={`Últimos ${rango} días`}>
         <DailyBars data={series.daily} />
       </SectionCard>
     </div>

@@ -21,7 +21,7 @@ export function ThemeToggle() {
       type="button"
       aria-label="Cambiar tema"
       onClick={toggle}
-      className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-[var(--text-muted)] ring-1 ring-[var(--border)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
+      className="btn btn-icon"
     >
       <AnimatePresence mode="wait" initial={false}>
         <motion.span

@@ -40,8 +40,10 @@ export default async function GeneradorPage({
       {!gen.everUsed && (
         <SectionCard>
           <div className="flex flex-col items-start gap-2">
-            <div className="text-xs uppercase tracking-wide text-[var(--text-faint)]">Combustible</div>
-            <div className="text-3xl font-semibold text-[var(--text)]">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--c-battery)]/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.07em] text-[var(--c-battery)]">
+              Combustible · 0 L
+            </span>
+            <div className="text-3xl font-semibold tracking-tight text-[var(--text)]">
               No usaste el generador
             </div>
             <p className="max-w-prose text-sm text-[var(--text-muted)]">
@@ -70,7 +72,7 @@ export default async function GeneradorPage({
       </section>
 
       {gen.everUsed && (
-        <SectionCard title={`Energía del generador · últimos ${rango} días`}>
+        <SectionCard title="Energía del generador" description={`Últimos ${rango} días`}>
           <GenDailyBars data={gen.last30} />
         </SectionCard>
       )}

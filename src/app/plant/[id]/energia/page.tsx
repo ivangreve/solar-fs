@@ -39,12 +39,12 @@ export default async function EnergiaPage({
           sub="sistema aislado" />
       </section>
 
-      <SectionCard title={`De dónde salió cada watt · ${etiquetaDia}`}>
+      <SectionCard title="De dónde salió cada watt" description={etiquetaDia}>
         <SourceMixChart data={series.intraday} />
       </SectionCard>
 
       {lastDay && (
-        <SectionCard title={`Flujo de energía · ${lastDay.day}`}>
+        <SectionCard title="Flujo de energía" description={lastDay.day}>
           <EnergySankey day={lastDay} />
           <p className="mt-3 text-xs text-[var(--text-faint)]">
             Flujos reconstruidos a partir de los totales del día. El sol que no se consume al
@@ -53,7 +53,7 @@ export default async function EnergiaPage({
         </SectionCard>
       )}
 
-      <SectionCard title={`Generación y consumo · últimos ${rango} días`}>
+      <SectionCard title="Generación y consumo" description={`Últimos ${rango} días`}>
         <EnergyDailyBars data={daily} />
       </SectionCard>
     </div>

@@ -2,7 +2,7 @@
 
 import ReactECharts from "echarts-for-react";
 import { ENERGY_COLORS } from "@/components/ui/tokens";
-import { useChartTheme, baseTooltip } from "@/components/charts/chartTheme";
+import { useChartTheme, tooltipBox, legendBase, gridBase, xCategory, yValue, areaGradient } from "@/components/charts/chartTheme";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 type Point = { t: string; pv: number; load: number; soc: number | null; gen: number };
@@ -19,13 +19,11 @@ export function DeviceIntradayChart({ data, mode }: { data: Point[]; mode: "powe
       />
     );
   }
-  const axisLine = { lineStyle: { color: t.axisLine } };
-  const splitLine = { lineStyle: { color: t.splitLine } };
   const base = {
     backgroundColor: "transparent",
-    grid: { left: 48, right: 24, top: 24, bottom: 28 },
-    tooltip: { ...baseTooltip(t), trigger: "axis" },
-    xAxis: { type: "category", data: data.map((d) => d.t), axisLabel: { color: t.axisLabel }, axisLine },
+    grid: gridBase,
+    tooltip: { ...tooltipBox(t), trigger: "axis" },
+    xAxis: xCategory(t, data.map((d) => d.t), false),
   };
 
   const option =
@@ -33,14 +31,15 @@ export function DeviceIntradayChart({ data, mode }: { data: Point[]; mode: "powe
       ? {
           ...base,
           legend: { show: false },
-          yAxis: { type: "value", min: 0, max: 100, axisLabel: { color: t.axisLabel, formatter: "{value}%" }, splitLine },
+          yAxis: yValue(t, { min: 0, max: 100, formatter: "{value}%" }),
           series: [
             {
               name: "SOC",
               type: "line",
               smooth: true,
               showSymbol: false,
-              areaStyle: { opacity: 0.15 },
+              areaStyle: { color: areaGradient(ENERGY_COLORS.battery) },
+              lineStyle: { width: 2 },
               itemStyle: { color: ENERGY_COLORS.battery },
               data: data.map((d) => d.soc),
             },
@@ -48,15 +47,16 @@ export function DeviceIntradayChart({ data, mode }: { data: Point[]; mode: "powe
         }
       : {
           ...base,
-          legend: { top: 0, textStyle: { color: t.legendText } },
-          yAxis: { type: "value", name: "W", nameTextStyle: { color: t.axisName }, axisLabel: { color: t.axisLabel }, splitLine },
+          legend: legendBase(t),
+          yAxis: yValue(t, { name: "W" }),
           series: [
             {
               name: "Generación FV",
               type: "line",
               smooth: true,
               showSymbol: false,
-              areaStyle: { opacity: 0.2 },
+              areaStyle: { color: areaGradient(ENERGY_COLORS.solar) },
+              lineStyle: { width: 2 },
               itemStyle: { color: ENERGY_COLORS.solar },
               data: data.map((d) => d.pv),
             },

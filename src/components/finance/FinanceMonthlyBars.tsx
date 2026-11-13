@@ -2,7 +2,7 @@
 
 import ReactECharts from "echarts-for-react";
 import { ENERGY_COLORS } from "@/components/ui/tokens";
-import { useChartTheme, baseTooltip } from "@/components/charts/chartTheme";
+import { useChartTheme, tooltipBox, legendBase, gridBase, xCategory, yValue } from "@/components/charts/chartTheme";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 export type MonthlyMoney = { month: string; ahorro: number; costoGen: number; neto: number };
@@ -22,28 +22,16 @@ export function FinanceMonthlyBars({ data, currency }: { data: MonthlyMoney[]; c
 
   const option = {
     backgroundColor: "transparent",
-    grid: { left: 14, right: 14, top: 36, bottom: 8, containLabel: true },
+    grid: gridBase,
     tooltip: {
-      ...baseTooltip(th),
+      ...tooltipBox(th),
       trigger: "axis",
       axisPointer: { type: "shadow" },
       valueFormatter: (v: number) => `${Math.round(v).toLocaleString("es-AR")} ${currency}`,
     },
-    legend: { textStyle: { color: th.legendText }, top: 2, icon: "roundRect", itemWidth: 12, itemHeight: 6 },
-    xAxis: {
-      type: "category",
-      data: data.map((d) => d.month),
-      axisLabel: { color: th.axisLabel, fontSize: 11 },
-      axisLine: { lineStyle: { color: th.axisLine } },
-      axisTick: { show: false },
-    },
-    yAxis: {
-      type: "value",
-      name: currency,
-      nameTextStyle: { color: th.axisName },
-      axisLabel: { color: th.axisLabel, fontSize: 11 },
-      splitLine: { lineStyle: { color: th.splitLine } },
-    },
+    legend: legendBase(th),
+    xAxis: xCategory(th, data.map((d) => d.month)),
+    yAxis: yValue(th, { name: currency }),
     series: [
       {
         name: "Ahorro solar",
