@@ -9,7 +9,7 @@ export function PageShell({
   narrow?: boolean;
 }) {
   return (
-    <div className={`mx-auto px-4 py-6 sm:px-6 sm:py-8 ${narrow ? "max-w-3xl" : "max-w-6xl"} ${className}`}>
+    <div className={`mx-auto w-full min-w-0 px-4 py-6 sm:px-6 sm:py-8 ${narrow ? "max-w-3xl" : "max-w-6xl"} ${className}`}>
       {children}
     </div>
   );

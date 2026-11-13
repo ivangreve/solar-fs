@@ -94,7 +94,7 @@ export const legendBase = (t: ChartTheme) => ({
 });
 
 /** Grid común: deja aire para la leyenda y calcula el ancho de las etiquetas solo. */
-export const gridBase = { left: 4, right: 8, top: 40, bottom: 4, containLabel: true } as const;
+export const gridBase = { left: 4, right: 8, top: 58, bottom: 4, containLabel: true } as const;
 
 /** Eje X de categorías con estilo unificado. */
 export const xCategory = (t: ChartTheme, data: string[], boundaryGap = true) => ({
@@ -112,11 +112,14 @@ export const yValue = (
   opts: { name?: string; min?: number; max?: number; split?: boolean; formatter?: string } = {},
 ) => ({
   type: "value" as const,
-  name: opts.name,
   min: opts.min,
   max: opts.max,
-  nameTextStyle: { color: t.axisName, fontSize: 11, align: "left" as const },
-  axisLabel: { color: t.axisLabel, fontSize: 11, formatter: opts.formatter },
+  // La unidad va en las etiquetas (no como título de eje): no choca con la leyenda al partirse en móvil.
+  axisLabel: {
+    color: t.axisLabel,
+    fontSize: 11,
+    formatter: opts.formatter ?? (opts.name ? `{value} ${opts.name}` : undefined),
+  },
   axisLine: { show: false },
   axisTick: { show: false },
   splitLine: opts.split === false ? { show: false } : { lineStyle: { color: t.splitLine, type: "dashed" as const } },

@@ -28,7 +28,7 @@ export default function Loading() {
   return (
     <>
       <div className="h-14 border-b border-[var(--border)]" />
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+      <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
         <Skeleton className="h-8 w-56" />
         <Skeleton className="mt-2 h-4 w-72" />
         <div className="mt-8 grid gap-4 sm:grid-cols-2">

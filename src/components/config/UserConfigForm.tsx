@@ -58,7 +58,7 @@ export function UserConfigForm({ defaults }: { defaults: Defaults }) {
             </button>
           ))}
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid items-start gap-3 sm:grid-cols-2">
           <input name="genLabel" type="text" value={genLabel} onChange={(e) => setGenLabel(e.target.value)}
             placeholder="Nombre o modelo (opcional)" className={input} />
           <div>

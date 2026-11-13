@@ -37,7 +37,7 @@ export default async function Home() {
   return (
     <>
       <AppHeader sync />
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
+      <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
         <PageHeader
           title={firstName ? `Hola, ${firstName}` : "Tus plantas"}
           subtitle={
