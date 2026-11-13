@@ -39,7 +39,7 @@ export function PlantTabs({ plantId }: { plantId: string }) {
       aria-label="Secciones de la planta"
       className="scrollbar-none -mx-4 flex gap-1 overflow-x-auto px-4 sm:mx-0 sm:px-0"
     >
-      <div className="flex gap-1 rounded-xl bg-[var(--surface-2)] p-1 ring-1 ring-[var(--border)]">
+      <div className="flex gap-1 rounded-[14px] bg-[var(--surface)] p-1 ring-1 ring-[var(--border)]">
         {tabs.map((tab) => {
           const active = tab.href === base ? pathname === base : pathname.startsWith(tab.href);
           return (
@@ -47,19 +47,19 @@ export function PlantTabs({ plantId }: { plantId: string }) {
               key={tab.href}
               href={`${tab.href}${qs}`}
               aria-current={active ? "page" : undefined}
-              className={`relative inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors ${
+              className={`relative inline-flex min-h-10 items-center gap-1.5 whitespace-nowrap rounded-[10px] px-4 text-sm font-medium transition-colors ${
                 active ? "text-[var(--text)]" : "text-[var(--text-muted)] hover:text-[var(--text)]"
               }`}
             >
               {active && (
                 <motion.span
                   layoutId="tab-pill"
-                  className="absolute inset-0 rounded-lg bg-[var(--surface-solid)] shadow-sm ring-1 ring-[var(--border-strong)]"
+                  className="absolute inset-0 rounded-[10px] bg-[var(--surface-2)] ring-1 ring-[var(--border)]"
                   transition={{ type: "spring", stiffness: 420, damping: 34 }}
                 />
               )}
               <svg
-                className={`relative ${active ? "text-[var(--accent)]" : ""}`}
+                className="relative hidden sm:block"
                 width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden
               >

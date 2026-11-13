@@ -18,7 +18,7 @@ export function GenDailyBars({ data }: { data: Row[] }) {
     series: [
       {
         name: "Generador",
-        type: "bar",
+        type: "bar", barMaxWidth: 22,
         itemStyle: { color: ENERGY_COLORS.generator, borderRadius: [3, 3, 0, 0] },
         data: data.map((d) => Math.round(d.kwh * 100) / 100),
       },

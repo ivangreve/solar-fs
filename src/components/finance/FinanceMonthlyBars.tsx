@@ -35,13 +35,13 @@ export function FinanceMonthlyBars({ data, currency }: { data: MonthlyMoney[]; c
     series: [
       {
         name: "Ahorro solar",
-        type: "bar",
+        type: "bar", barMaxWidth: 22,
         itemStyle: { color: ENERGY_COLORS.money, borderRadius: [4, 4, 0, 0] },
         data: data.map((d) => Math.round(d.ahorro)),
       },
       {
         name: "Costo generador",
-        type: "bar",
+        type: "bar", barMaxWidth: 22,
         itemStyle: { color: ENERGY_COLORS.generator, borderRadius: [4, 4, 0, 0] },
         data: data.map((d) => Math.round(d.costoGen)),
       },

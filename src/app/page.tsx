@@ -10,11 +10,11 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 function liveness(lastTs: string | null): { color: string; label: string } {
-  if (!lastTs) return { color: "#6b7280", label: "sin datos" };
+  if (!lastTs) return { color: "#7f8a9b", label: "sin datos" };
   const mins = Math.round((Date.now() - new Date(lastTs).getTime()) / 60000);
   if (mins < 15) return { color: ENERGY_COLORS.battery, label: mins < 1 ? "en vivo" : `en vivo · ${mins} min` };
   if (mins < 60) return { color: ENERGY_COLORS.solar, label: `hace ${mins} min` };
-  return { color: "#6b7280", label: `hace ${Math.round(mins / 60)} h` };
+  return { color: "#7f8a9b", label: `hace ${Math.round(mins / 60)} h` };
 }
 
 export default async function Home() {
@@ -48,7 +48,7 @@ export default async function Home() {
         />
 
         {error && (
-          <div role="alert" className="mt-8 rounded-xl bg-red-500/10 p-4 text-sm text-[var(--c-danger)] ring-1 ring-red-500/30">
+          <div role="alert" className="mt-8 rounded-2xl bg-[color-mix(in_srgb,var(--c-danger)_10%,transparent)] p-4 text-sm text-[var(--c-danger)] ring-1 ring-[color-mix(in_srgb,var(--c-danger)_35%,transparent)]">
             No se pudo leer la DB: {error}.
           </div>
         )}
@@ -72,16 +72,12 @@ export default async function Home() {
               <Reveal key={p.id} index={i}>
                 <Link
                   href={`/plant/${p.id}`}
-                  className="card group relative block overflow-hidden p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_0_1px_var(--accent-ring),var(--shadow-card)] sm:p-6"
+                  className="card group relative block overflow-hidden p-5 transition-all duration-200 hover:shadow-[0_0_0_1px_var(--border-strong)] sm:p-7"
                 >
-                  <div
-                    aria-hidden
-                    className="pointer-events-none absolute -right-10 -top-12 h-32 w-32 rounded-full bg-amber-400/15 opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-100"
-                  />
                   <div className="relative flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="truncate text-lg font-semibold tracking-tight text-[var(--text)]">{p.name}</div>
-                      <div className="mt-0.5 text-xs text-[var(--text-faint)]">
+                      <div className="num mt-1 text-[13px] tracking-normal text-[var(--text-muted)]">
                         {p.country ?? "—"}
                         {p.ratedPowerW ? ` · ${(p.ratedPowerW / 1000).toFixed(1)} kWp` : ""}
                       </div>
@@ -96,8 +92,8 @@ export default async function Home() {
                   </div>
 
                   <div className="relative mt-5 grid grid-cols-3 gap-3">
-                    <Metric label="FV ahora" value={fmtW(ov?.pvNowW ?? 0)} color="var(--c-solar)" />
-                    <Metric label="Hoy" value={fmtKwh(ov?.ePvKwh ?? 0, 1)} color="var(--c-grid)" />
+                    <Metric label="Paneles" value={fmtW(ov?.pvNowW ?? 0)} color="var(--c-solar)" />
+                    <Metric label="Generó hoy" value={fmtKwh(ov?.ePvKwh ?? 0, 1)} color="var(--c-solar)" />
                     <Metric label="Batería" value={soc != null ? fmtPct(soc) : "—"} color="var(--c-battery)" />
                   </div>
 
@@ -127,8 +123,8 @@ export default async function Home() {
 function Metric({ label, value, color }: { label: string; value: string; color: string }) {
   return (
     <div>
-      <div className="text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--text-faint)]">{label}</div>
-      <div className="mt-1 text-lg font-semibold tabular-nums tracking-tight" style={{ color }}>
+      <div className="eyebrow" style={{ color }}>{label}</div>
+      <div className="num mt-1.5 text-xl font-medium text-[var(--text)]">
         {value}
       </div>
     </div>

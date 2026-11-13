@@ -17,26 +17,26 @@ export type ChartTheme = {
 };
 
 const DARK: ChartTheme = {
-  axisLabel: "#9ca3af",
-  axisName: "#6b7280",
-  axisLine: "rgba(128,128,128,0.25)",
-  splitLine: "rgba(128,128,128,0.12)",
-  legendText: "#a3a3a3",
-  tooltipBg: "rgba(20,20,22,0.92)",
-  tooltipText: "#e5e5e5",
-  crosshair: "rgba(128,128,128,0.4)",
+  axisLabel: "#8791a1",
+  axisName: "#7f8a9b",
+  axisLine: "#232a35",
+  splitLine: "#232a35",
+  legendText: "#98a2b3",
+  tooltipBg: "#181d26",
+  tooltipText: "#eef1f5",
+  crosshair: "#98a2b3",
   tooltipShadow: "box-shadow: 0 4px 16px rgba(0,0,0,0.35)",
 };
 
 const LIGHT: ChartTheme = {
-  axisLabel: "#52525b",
-  axisName: "#71717a",
-  axisLine: "rgba(9,9,11,0.2)",
-  splitLine: "rgba(9,9,11,0.08)",
-  legendText: "#52525b",
-  tooltipBg: "rgba(255,255,255,0.97)",
-  tooltipText: "#18181b",
-  crosshair: "rgba(9,9,11,0.3)",
+  axisLabel: "#6e6858",
+  axisName: "#6e6858",
+  axisLine: "#e4dfd3",
+  splitLine: "#e4dfd3",
+  legendText: "#5b5648",
+  tooltipBg: "#ffffff",
+  tooltipText: "#17140f",
+  crosshair: "#5b5648",
   tooltipShadow: "box-shadow: 0 4px 16px rgba(0,0,0,0.08)",
 };
 
@@ -69,7 +69,7 @@ export function useChartTheme(): ChartTheme {
 export const baseTooltip = (t: ChartTheme) => ({
   backgroundColor: t.tooltipBg,
   borderWidth: 0,
-  textStyle: { color: t.tooltipText, fontSize: 12 },
+  textStyle: { color: t.tooltipText, fontSize: 12, fontFamily: "var(--font-jetbrains), ui-monospace, monospace" },
   extraCssText: t.tooltipShadow,
 });
 
@@ -86,11 +86,11 @@ export const tooltipBox = (t: ChartTheme) => ({
 export const legendBase = (t: ChartTheme) => ({
   top: 0,
   left: 0,
-  icon: "circle",
-  itemWidth: 8,
-  itemHeight: 8,
-  itemGap: 16,
-  textStyle: { color: t.legendText, fontSize: 12 },
+  icon: "roundRect",
+  itemWidth: 10,
+  itemHeight: 10,
+  itemGap: 18,
+  textStyle: { color: t.legendText, fontSize: 13 },
 });
 
 /** Grid común: deja aire para la leyenda y calcula el ancho de las etiquetas solo. */
@@ -101,7 +101,7 @@ export const xCategory = (t: ChartTheme, data: string[], boundaryGap = true) => 
   type: "category" as const,
   data,
   boundaryGap,
-  axisLabel: { color: t.axisLabel, fontSize: 11, hideOverlap: true },
+  axisLabel: { color: t.axisLabel, fontSize: 12, hideOverlap: true, fontFamily: "var(--font-jetbrains), ui-monospace, monospace" },
   axisLine: { lineStyle: { color: t.axisLine } },
   axisTick: { show: false },
 });
@@ -117,12 +117,13 @@ export const yValue = (
   // La unidad va en las etiquetas (no como título de eje): no choca con la leyenda al partirse en móvil.
   axisLabel: {
     color: t.axisLabel,
-    fontSize: 11,
+    fontSize: 12,
+    fontFamily: "var(--font-jetbrains), ui-monospace, monospace",
     formatter: opts.formatter ?? (opts.name ? `{value} ${opts.name}` : undefined),
   },
   axisLine: { show: false },
   axisTick: { show: false },
-  splitLine: opts.split === false ? { show: false } : { lineStyle: { color: t.splitLine, type: "dashed" as const } },
+  splitLine: opts.split === false ? { show: false } : { lineStyle: { color: t.splitLine, type: [2, 6] as unknown as "dotted", width: 1 } },
 });
 
 /** Gradiente vertical (color sólido arriba → más tenue abajo) para barras. */
@@ -131,16 +132,16 @@ export const barGradient = (hex: string) => ({
   x: 0, y: 0, x2: 0, y2: 1,
   colorStops: [
     { offset: 0, color: hex },
-    { offset: 1, color: hex + "66" },
+    { offset: 1, color: hex + "cc" },
   ],
 });
 
 /** Relleno de área (color arriba → transparente abajo). */
-export const areaGradient = (hex: string, top = "59") => ({
+export const areaGradient = (hex: string, top = "5c") => ({
   type: "linear" as const,
   x: 0, y: 0, x2: 0, y2: 1,
   colorStops: [
     { offset: 0, color: hex + top },
-    { offset: 1, color: hex + "05" },
+    { offset: 1, color: hex + "00" },
   ],
 });

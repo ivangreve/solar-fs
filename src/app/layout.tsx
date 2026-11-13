@@ -1,27 +1,27 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Instrument_Sans, JetBrains_Mono } from "next/font/google";
 import { cookies } from "next/headers";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const instrument = Instrument_Sans({
+  variable: "--font-instrument",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jetbrains = JetBrains_Mono({
+  variable: "--font-jetbrains",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "solar-fs · Monitoreo solar",
+  title: "Solar FS · Monitoreo solar",
   description: "Estadísticas útiles para tu sistema solar Felicity",
   // PWA en iOS (Android/desktop usan el manifest)
-  appleWebApp: { capable: true, title: "solar-fs", statusBarStyle: "black-translucent" },
+  appleWebApp: { capable: true, title: "Solar FS", statusBarStyle: "black-translucent" },
 };
 
 export const viewport = {
-  themeColor: "#0a0a0a",
+  themeColor: "#0b0e13",
 };
 
 export default async function RootLayout({
@@ -37,7 +37,7 @@ export default async function RootLayout({
   return (
     <html
       lang="es"
-      className={`${geistSans.variable} ${geistMono.variable} ${themeClass} h-full antialiased`}
+      className={`${instrument.variable} ${jetbrains.variable} ${themeClass} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>

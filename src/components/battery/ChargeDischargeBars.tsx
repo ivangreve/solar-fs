@@ -29,14 +29,14 @@ export function ChargeDischargeBars({ data }: { data: Row[] }) {
     series: [
       {
         name: "Carga",
-        type: "bar",
+        type: "bar", barMaxWidth: 22,
         stack: "b",
         itemStyle: { color: ENERGY_COLORS.battery, borderRadius: [3, 3, 0, 0] },
         data: data.map((d) => Math.round(d.eBatChar * 100) / 100),
       },
       {
         name: "Descarga",
-        type: "bar",
+        type: "bar", barMaxWidth: 22,
         stack: "b",
         itemStyle: { color: ENERGY_COLORS.load },
         data: data.map((d) => -Math.round(d.eBatDischar * 100) / 100),

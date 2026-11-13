@@ -29,7 +29,7 @@ export function EnergyDailyBars({ data }: { data: Row[] }) {
     series: [
       {
         name: "Generación",
-        type: "bar",
+        type: "bar", barMaxWidth: 22,
         itemStyle: { color: ENERGY_COLORS.solar, borderRadius: [3, 3, 0, 0] },
         data: data.map((d) => Math.round(d.ePv * 100) / 100),
       },
@@ -37,8 +37,8 @@ export function EnergyDailyBars({ data }: { data: Row[] }) {
         name: "Consumo",
         type: "line",
         smooth: true,
-        symbol: "circle",
-        symbolSize: 5,
+        showSymbol: false,
+        lineStyle: { width: 2.5, cap: "round" },
         itemStyle: { color: ENERGY_COLORS.load },
         data: data.map((d) => Math.round(d.eLoad * 100) / 100),
       },

@@ -24,39 +24,26 @@ export default async function LoginPage() {
     <main className="relative grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
       {/* Panel de marca */}
       <section className="relative hidden overflow-hidden border-r border-[var(--border)] lg:flex lg:flex-col lg:justify-between lg:p-12">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -left-24 -top-24 h-[28rem] w-[28rem] rounded-full bg-amber-400/20 blur-3xl"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -bottom-32 right-0 h-[24rem] w-[24rem] rounded-full bg-orange-500/10 blur-3xl"
-        />
         <div className="relative flex items-center gap-3">
-          <BrandMark size={40} />
-          <span className="text-lg font-semibold tracking-tight">
-            solar<span className="text-[var(--accent)]">-fs</span>
-          </span>
+          <BrandMark size={36} />
+          <span className="text-lg font-bold tracking-tight">Solar FS</span>
         </div>
         <div className="relative max-w-md">
-          <h2 className="text-4xl font-semibold leading-[1.1] tracking-tight">
-            Mirá qué hace tu sistema solar,{" "}
-            <span className="bg-gradient-to-r from-amber-300 to-orange-500 bg-clip-text text-transparent">
-              watt por watt.
-            </span>
+          <h2 className="text-[2.5rem] font-semibold leading-[1.1] tracking-tight">
+            Mirá qué hace tu sistema solar, <span className="text-[var(--c-solar)]">watt por watt.</span>
           </h2>
           <ul className="mt-8 space-y-4">
             {FEATURES.map((f) => (
               <li key={f.t} className="flex gap-3">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
-                <p className="text-sm text-[var(--text-muted)]">
+                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--c-solar)]" />
+                <p className="text-[15px] leading-relaxed text-[var(--text-muted)]">
                   <strong className="font-semibold text-[var(--text)]">{f.t}.</strong> {f.d}
                 </p>
               </li>
             ))}
           </ul>
         </div>
-        <p className="relative text-xs text-[var(--text-faint)]">Monitoreo para equipos Felicity Solar off-grid</p>
+        <p className="eyebrow relative">Monitoreo para equipos Felicity Solar off-grid</p>
       </section>
 
       {/* Formulario */}
@@ -65,18 +52,16 @@ export default async function LoginPage() {
           <div className="mb-8 flex items-center justify-between lg:justify-end">
             <div className="flex items-center gap-2.5 lg:hidden">
               <BrandMark />
-              <span className="text-[15px] font-semibold tracking-tight">
-                solar<span className="text-[var(--accent)]">-fs</span>
-              </span>
+              <span className="text-[17px] font-bold tracking-tight">Solar FS</span>
             </div>
             <ThemeToggle />
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight text-[var(--text)]">Conectá tu cuenta</h1>
-          <p className="mt-1 text-sm text-[var(--text-muted)]">Entrá con tu usuario de Felicity Solar.</p>
+          <h1 className="text-3xl font-semibold tracking-tight text-[var(--text)]">Conectá tu cuenta</h1>
+          <p className="mt-2 text-[15px] text-[var(--text-muted)]">Entrá con tu usuario de Felicity Solar.</p>
 
           <LoginForm />
 
-          <p className="mt-6 flex gap-2 text-xs leading-relaxed text-[var(--text-faint)]">
+          <p className="mt-6 flex gap-2 text-[13px] leading-relaxed text-[var(--text-muted)]">
             <svg className="mt-0.5 shrink-0" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <rect x="4" y="11" width="16" height="10" rx="2" />
               <path d="M8 11V7a4 4 0 0 1 8 0v4" />

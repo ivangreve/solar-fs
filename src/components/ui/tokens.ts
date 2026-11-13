@@ -5,12 +5,12 @@
 
 /** Colores crudos (para charts/SVG, que no leen CSS vars). Para texto/UI usar ACCENT_TEXT / ACCENT_VAR. */
 export const ENERGY_COLORS = {
-  solar: "#fbbf24",
-  battery: "#34d399",
-  grid: "#38bdf8",
-  load: "#a78bfa",
-  generator: "#fb923c",
-  money: "#f472b6",
+  solar: "#ffb224",
+  battery: "#35d0a0",
+  grid: "#5ab4f2",
+  load: "#8ea6ff",
+  generator: "#ff7b54",
+  money: "#d6dde8",
 } as const;
 
 export type EnergyAccent = keyof typeof ENERGY_COLORS;

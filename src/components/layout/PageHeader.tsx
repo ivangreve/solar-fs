@@ -18,7 +18,7 @@ export function PageHeader({
         {back && (
           <Link
             href={back.href}
-            className="mb-1.5 inline-flex items-center gap-1 text-xs text-[var(--text-faint)] transition-colors hover:text-[var(--text)]"
+            className="eyebrow mb-2 inline-flex items-center gap-1 transition-colors hover:text-[var(--text)]"
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <path d="M15 18l-6-6 6-6" />
@@ -26,8 +26,8 @@ export function PageHeader({
             {back.label}
           </Link>
         )}
-        <h1 className="truncate text-2xl font-semibold tracking-tight text-[var(--text)] sm:text-3xl">{title}</h1>
-        {subtitle && <p className="mt-1 text-sm text-[var(--text-muted)]">{subtitle}</p>}
+        <h1 className="truncate text-3xl font-semibold tracking-tight text-[var(--text)] sm:text-[2.125rem]">{title}</h1>
+        {subtitle && <p className="num mt-1 text-sm tracking-normal text-[var(--text-muted)]">{subtitle}</p>}
       </div>
       {children && <div className="flex shrink-0 items-center gap-2">{children}</div>}
     </header>

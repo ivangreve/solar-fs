@@ -29,31 +29,45 @@ export default async function EnergiaPage({
   const lastDay = daily.at(-1);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      <section className="px-1 pb-2">
+        <span className="eyebrow">{etiquetaDia}</span>
+        <h2 className="mt-3 max-w-[44rem] text-[1.75rem] font-semibold leading-[1.15] tracking-tight text-[var(--text)] sm:text-[2.125rem]">
+          {ov && ov.ePvKwh > 0 ? (
+            <>
+              Generaste <span className="text-[var(--c-solar)]">{fmtKwh(ov.ePvKwh)}</span> y consumiste{" "}
+              <span className="text-[var(--c-load)]">{fmtKwh(ov.eLoadKwh)}</span>.
+            </>
+          ) : (
+            <>Todavía no hay energía registrada para este día.</>
+          )}
+        </h2>
+      </section>
+
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatTile label={`Generación ${etiquetaDia}`} value={fmtKwh(ov?.ePvKwh ?? 0)} accent="solar" />
         <StatTile label={`Consumo ${etiquetaDia}`} value={fmtKwh(ov?.eLoadKwh ?? 0)} accent="load" />
         <StatTile label="Autoconsumo" value={fmtPct(ov?.selfConsumptionPct)} accent="battery"
-          sub="de tu sol usado in situ" />
+          progress={ov?.selfConsumptionPct ?? 0} sub="de tu sol usado in situ" />
         <StatTile label="A la red" value={fmtKwh(ov?.eGridFeedKwh ?? 0)} accent="grid"
           sub="sistema aislado" />
       </section>
 
-      <SectionCard title="De dónde salió cada watt" description={etiquetaDia}>
+      <SectionCard title="Quién puso cada watt" description="Paneles, batería y generador frente al consumo, hora por hora.">
         <SourceMixChart data={series.intraday} />
       </SectionCard>
 
       {lastDay && (
-        <SectionCard title="Flujo de energía" description={lastDay.day}>
+        <SectionCard title="Adónde fue cada kWh" description={lastDay.day}>
           <EnergySankey day={lastDay} />
-          <p className="mt-3 text-xs text-[var(--text-faint)]">
+          <p className="mt-4 text-sm text-[var(--text-muted)]">
             Flujos reconstruidos a partir de los totales del día. El sol que no se consume al
             instante carga la batería; de noche el consumo sale de la batería.
           </p>
         </SectionCard>
       )}
 
-      <SectionCard title="Generación y consumo" description={`Últimos ${rango} días`}>
+      <SectionCard title="Generación y consumo por día" description={`Últimos ${rango} días. Cuando la barra supera a la línea, la batería se llenó.`}>
         <EnergyDailyBars data={daily} />
       </SectionCard>
     </div>
